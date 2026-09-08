@@ -1,0 +1,27 @@
+---
+title: News
+description: Announcements, tutorials and deep dives about Linked Data Event Streams.
+permalink: /news/
+---
+{% include header.html %}
+{% include nav.html %}
+<main id="main-content" class="container news-page">
+  <header class="news-masthead">
+    <h1>News and ideas</h1>
+    <p>Announcements, practical guides, and perspectives on sharing changing data.</p>
+    <a href="{{ '/news/feed.xml' | relative_url }}">Subscribe via RSS &rarr;</a>
+  </header>
+  {% assign lead = site.posts.first %}
+  {% if lead %}{% include news-story.html post=lead lead=true %}{% endif %}
+  {% assign archive_posts = site.posts | slice: 1, site.posts.size %}
+  {% assign posts_by_year = archive_posts | group_by_exp: "post", "post.date | date: '%Y'" %}
+  {% for yeargroup in posts_by_year %}
+  <section class="news-year" aria-labelledby="year-{{ yeargroup.name }}">
+    <h2 id="year-{{ yeargroup.name }}">{{ yeargroup.name }}</h2>
+    <div class="news-list">
+      {% for post in yeargroup.items %}{% include news-story.html post=post %}{% endfor %}
+    </div>
+  </section>
+  {% endfor %}
+</main>
+{% include footer.html %}

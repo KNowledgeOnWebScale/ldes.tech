@@ -1,0 +1,97 @@
+---
+title: LDES examples
+description: >-
+  A selection of Linked Data Event Streams (LDES)
+  with entry points and source references.
+permalink: /examples/
+---
+{% include header.html %}
+{% include nav.html %}
+
+<main id="main-content" class="container">
+  <section>
+    <h1>LDES examples</h1>
+    <p class="section-intro">
+      A set of examples of LDES in practice: collection records, catalog updates, marine data, and observations.
+      These are starting points for exploring what you can publish and build with LDES, rather than an exhaustive list.
+    </p>
+    <p>
+      The <a href="https://github.com/SEMICeu/LDES-implementation-reports">SEMIC LDES implementation reports</a>
+      explain the design choices behind real deployments. For a closer look at harvested data, visit the
+      <a href="https://ldes-explorer-ec66be.pages.ilabt.imec.be/">LDES Explorer</a>.
+    </p>
+  </section>
+
+  <section aria-labelledby="implementation-examples">
+    <h2 id="implementation-examples">How others use LDES</h2>
+    <dl class="implementation-examples">
+      <div>
+        <dt>Keep data catalogs in sync</dt>
+        <dd>Catalog publishers can share changes so harvesters can update their copies incrementally.
+          The <a href="https://semiceu.github.io/LDES-implementation-reports/bosa-dcat-ap-feed/">BOSA report</a>
+          follows the Belgian federal catalog from publication to harvesting;
+          the <a href="https://semiceu.github.io/LDES-implementation-reports/era-dcat-ap-feed/">ERA report</a>
+          shows a pipeline that publishes catalog changes as static files.</dd>
+      </div>
+      <div>
+        <dt>Share cultural heritage collections</dt>
+        <dd>Museums and aggregators need to exchange new records, revisions, and deletions.
+          The <a href="https://semiceu.github.io/LDES-implementation-reports/cultural-heritage-feeds/">cultural heritage report</a>
+          describes how LDES and ActivityStreams support those exchanges, including versioning and retention choices.</dd>
+      </div>
+    </dl>
+  </section>
+
+  <section aria-labelledby="example-feeds">
+    <h2 id="example-feeds">Try an example feed</h2>
+    <p>
+      Choose one of these {{ site.data.feeds | size }} examples and use an <a href="{{ '/tools/' | relative_url }}">LDES tool</a>
+      to inspect or consume it. Each entry links to documentation or a dated explorer observation.
+      Availability and retained history depend on the publisher.
+      <a href="{{ '/community/' | relative_url }}">Share your own example with the community</a>.
+    </p>
+    <ul class="example-list" typeof="dcat:Catalog" resource="https://ldes.tech/examples/">
+      <meta property="dct:title" content="LDES examples"/>
+      {% for feed in site.data.feeds %}
+      <li property="dcat:dataset" typeof="dcat:Dataset" resource="{{ feed.url }}">
+        <h3 property="dct:title"><a href="{{ feed.url }}">{{ feed.title }}</a></h3>
+        <p class="meta">Publisher: <span property="dct:publisher">{{ feed.publisher }}</span></p>
+        <p property="dct:description">{{ feed.description }}</p>
+        <code class="feed-url" property="dcat:accessURL" resource="{{ feed.url }}">{{ feed.url }}</code>
+        <p class="example-evidence">{{ feed.evidence }} <a href="{{ feed.source }}">{% if feed.explorer %}Explore harvested data{% else %}Source documentation{% endif %}</a>.</p>
+        {% if feed.report %}<p><a href="{{ feed.report }}">Read the implementation report &rarr;</a></p>{% endif %}
+        {% if feed.homepage %}
+        <p><a href="{{ feed.homepage }}" property="foaf:homepage">More about this dataset &rarr;</a></p>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+
+</main>
+
+<script type="application/ld+json">
+{
+  "@context": {
+    "@vocab": "http://www.w3.org/ns/dcat#",
+    "dct": "http://purl.org/dc/terms/"
+  },
+  "@type": "Catalog",
+  "@id": "https://ldes.tech/examples/",
+  "dct:title": "LDES examples",
+  "dataset": [
+    {% for feed in site.data.feeds %}
+    {
+      "@type": "Dataset",
+      "@id": "{{ feed.url }}",
+      "dct:title": "{{ feed.title | replace: '"', '\"' }}",
+      "dct:publisher": "{{ feed.publisher | replace: '"', '\"' }}",
+      "dct:description": "{{ feed.description | strip_newlines | replace: '"', '\"' }}",
+      "distribution": { "@type": "Distribution", "accessURL": "{{ feed.url }}" }
+    }{% unless forloop.last %},{% endunless %}
+    {% endfor %}
+  ]
+}
+</script>
+
+{% include footer.html %}

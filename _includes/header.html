@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en" prefix="schema: https://schema.org/
+                        dct: http://purl.org/dc/terms/
+                        foaf: http://xmlns.com/foaf/0.1/
+                        owl: http://www.w3.org/2002/07/owl#
+                        dcat: http://www.w3.org/ns/dcat#
+                        tree: https://w3id.org/tree#
+                        ldes: https://w3id.org/ldes#
+                        og: http://ogp.me/ns#">
+  <head>
+    <meta charset="utf-8">
+    <title property="dct:title">{{ page.title }} – {{ site.title }}</title>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400italic,700italic,400,700" rel="stylesheet">
+    <link rel="stylesheet" href="{{ '/style.css' | relative_url }}"/>
+    <link rel="icon" href="{{ '/assets/logo-ldes.svg' | relative_url }}" type="image/svg+xml"/>
+    <meta name="theme-color" content="#5252cf"/>
+    <link rel="alternate" type="application/rss+xml" title="{{ site.title }} News" href="{{ '/news/feed.xml' | relative_url }}" />
+    {% if page.description %}
+    <meta name="description" content="{{ page.description }}"/>
+    {% else %}
+    <meta name="description" content="{{ site.description }}"/>
+    {% endif %}
+    <meta name="keywords" content="LDES, Linked Data Event Streams, Linked Data, RDF, event sourcing, TREE, data streaming, base registries"/>
+    <meta name="dct:creator" resource="https://pietercolpaert.be/#me"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta property="og:title" content="{{ page.title }} – {{ site.title }}" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="{{ page.url | absolute_url }}" />
+    {% if page.description %}
+    <meta property="og:description" content="{{ page.description }}" />
+    {% else %}
+    <meta property="og:description" content="{{ site.description }}" />
+    {% endif %}
+    <meta property="og:image" content="{{ site.social_image | absolute_url }}" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:image" content="{{ site.social_image | absolute_url }}" />
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "@id": "https://ldes.tech/#website",
+      "name": "LDES",
+      "alternateName": "Linked Data Event Streams",
+      "url": "https://ldes.tech/",
+      "description": "{{ site.description | strip_newlines }}",
+      "publisher": { "@id": "https://ldes.tech/#organization" }
+    }
+    </script>
+  </head>
+  <body vocab="https://schema.org/">

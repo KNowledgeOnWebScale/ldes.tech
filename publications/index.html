@@ -1,0 +1,44 @@
+---
+title: Publications
+description: Peer-reviewed papers, talks and preprints about Linked Data Event Streams.
+permalink: /publications/
+---
+{% include header.html %}
+{% include nav.html %}
+
+<main id="main-content" class="container">
+  <section>
+    <h1>Publications</h1>
+    <p class="section-intro">
+      Papers and talks about the LDES specification, its implementation, and deployments that use it to exchange data.
+      Each entry explains its relevance. Work focused on TREE indexing, query traversal, or general Linked Data infrastructure
+      belongs in the <a href="https://tree.linkeddatafragments.org/publications">TREE bibliography</a>. Missing an LDES publication?
+      <a href="https://github.com/SEMICeu/LinkedDataEventStreams/issues/">Let us know</a>.
+    </p>
+
+    {% assign pubs_by_year = site.data.publications | group_by: "year" | sort: "name" | reverse %}
+    {% for yeargroup in pubs_by_year %}
+    <h2>{{ yeargroup.name }}</h2>
+    <ul class="publication-list">
+      {% for pub in yeargroup.items %}
+      <li typeof="{% if pub.kind == 'Talk' %}schema:CreativeWork{% else %}schema:ScholarlyArticle{% endif %}" resource="{{ pub.links.first.url | default: '#' }}">
+        <h3 property="schema:headline schema:name">{{ pub.title }}</h3>
+        <p class="meta">{{ pub.kind }}</p>
+        <p>{{ pub.relevance }}</p>
+        <p class="meta" property="schema:author">{{ pub.authors }}</p>
+        <p class="meta"><em property="schema:isPartOf">{{ pub.venue }}</em></p>
+        {% if pub.links %}
+        <p>
+          {% for link in pub.links %}
+          <a href="{{ link.url }}" property="schema:sameAs">{{ link.label }}</a>{% unless forloop.last %} &middot; {% endunless %}
+          {% endfor %}
+        </p>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    {% endfor %}
+  </section>
+</main>
+
+{% include footer.html %}

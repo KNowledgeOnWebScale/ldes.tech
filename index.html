@@ -1,0 +1,116 @@
+---
+title: Event sourcing on Web-scale
+description: >-
+  LDES (Linked Data Event Streams) lets you publish an append-only collection
+  of immutable Linked Data on the Web, so consumers can copy data and follow updates.
+---
+{% include header.html %}
+{% include nav.html %}
+
+
+<header class="site-header">
+  <img src="{{ '/assets/logo-ldes.svg' | relative_url }}" alt="LDES logo" class="hero-logo"/>
+  <h1>Linked Data Event Streams</h1>
+  <p class="tagline">Event sourcing on Web-scale</p>
+  <p class="hero-summary">Publish your data and its changes. Let consumers build their own views and keep them up to date.</p>
+  <div class="hero-ctas">
+    <a href="https://w3id.org/ldes/specification">Read the specification</a>
+    <a href="{{ '/examples/' | relative_url }}">Explore LDES examples</a>
+    <a href="https://matrix.to/#/#ldes:chat.semantic.works">Join the chat</a>
+  </div>
+</header>
+
+<main id="main-content" class="container">
+
+  <section id="what-is-ldes" typeof="schema:TechArticle">
+    <h2>What is LDES?</h2>
+    <p class="section-intro">
+      Linked Data Event Streams (LDES) is an open specification for publishing an append-only collection of
+      immutable members as Linked Data. Members can describe events, observations, or successive versions of a record.
+      Consumers can copy the available data, then follow new members as they are published.
+    </p>
+    <h3>Publish once. Support many uses.</h3>
+    <p>
+      A museum shares its collection. One consumer builds a search engine; another adds the objects to a research
+      knowledge graph. Both follow the same stream for updates, while choosing their own storage and query tools.
+      The publisher provides a common source without having to build an API for every use case.
+    </p>
+    <ol class="how-it-works">
+      <li><strong>Publish changes.</strong> Add new members instead of overwriting existing ones. Use shared RDF vocabularies to describe the data.</li>
+      <li><strong>Copy and follow.</strong> Clients traverse linked pages over HTTP and check for new members, reusing cached responses where possible.</li>
+      <li><strong>Build your own view.</strong> Maintain a local database, search index, or API, and process updates at your own pace.</li>
+    </ol>
+    <p>
+      LDES uses <a href="https://w3id.org/tree/specification">TREE</a> links to let clients discover and navigate
+      pages of members. Views can be fragmented by time or other properties; the stream itself is not necessarily
+      delivered in chronological order. How far a client can go back depends on the publisher’s retention policy.
+    </p>
+    <p>
+      Developed in the <a href="https://github.com/SEMICeu/LinkedDataEventStreams">SEMIC community</a>,
+      LDES gives publishers and consumers a shared contract for exchanging changing data.
+      <a href="https://w3id.org/ldes/specification"><strong>Read the specification &rarr;</strong></a>
+    </p>
+  </section>
+
+  <section id="quicklinks">
+    <h2>Find your way around</h2>
+    <ul class="card-list cols-3">
+      <li>
+        <h3><a href="{{ '/examples/' | relative_url }}">LDES examples</a></h3>
+        <p>Discover known LDES feeds and their sources &mdash; from museum collections to marine gazetteers.</p>
+      </li>
+      <li>
+        <h3><a href="{{ '/publications/' | relative_url }}">Publications</a></h3>
+        <p>Peer-reviewed papers, talks and preprints about LDES, its vocabulary, and how it is used in the wild.</p>
+      </li>
+      <li>
+        <h3><a href="{{ '/news/' | relative_url }}">News and blog</a></h3>
+        <p>Announcements, tutorials and deep dives &mdash; also available as an <a href="{{ '/news/feed.xml' | relative_url }}">RSS feed</a>.</p>
+      </li>
+      <li>
+        <h3><a href="{{ '/community/' | relative_url }}">Community</a></h3>
+        <p>Join the Matrix chat room, watch talks on our YouTube playlist, and meet the people building LDES.</p>
+      </li>
+      <li>
+        <h3><a href="{{ '/tools/' | relative_url }}">Tools</a></h3>
+        <p>Open-source clients and servers for LDES, including RDF-Connect (JavaScript) and the OpenLDES ecosystem (Java).</p>
+      </li>
+      <li>
+        <h3><a href="https://w3id.org/ldes/specification">Specification</a></h3>
+        <p>The LDES vocabulary, publishing requirements, and guidance for clients and servers.</p>
+      </li>
+    </ul>
+  </section>
+
+  <section id="latest-news">
+    <h2>Latest from the blog</h2>
+    <div class="news-list news-list-compact">
+      {% assign latest_posts = site.posts | slice: 0, 3 %}
+      {% for post in latest_posts %}
+        {% include news-story.html post=post %}
+      {% endfor %}
+    </div>
+    <p><a href="{{ '/news/' | relative_url }}">View all news &rarr;</a></p>
+  </section>
+
+</main>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "@id": "https://ldes.tech/#organization",
+  "name": "Linked Data Event Streams community",
+  "url": "https://ldes.tech/",
+  "logo": "https://ldes.tech/assets/logo-ldes.svg",
+  "email": "mailto:pieter.colpaert@ugent.be",
+  "sameAs": [
+    "https://github.com/SEMICeu/LinkedDataEventStreams",
+    "https://github.com/treecg",
+    "https://matrix.to/#/#ldes:chat.semantic.works",
+    "https://www.youtube.com/playlist?list=PLRBOTYR9bOiibSZUv8_qCLWuJcv840dSk"
+  ]
+}
+</script>
+
+{% include footer.html %}

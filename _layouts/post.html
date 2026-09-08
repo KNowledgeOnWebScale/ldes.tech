@@ -1,0 +1,54 @@
+---
+---
+{% include header.html %}
+{% include nav.html %}
+
+<main id="main-content" class="container post-page{% if page.feature %} post-feature{% endif %}">
+  <article class="post" typeof="schema:BlogPosting" resource="{{ page.url | absolute_url }}">
+    <header class="post-header">
+    <h1 property="schema:headline schema:name">{{ page.title }}</h1>
+    {% if page.feature %}<p class="post-deck">{{ page.description }}</p>{% endif %}
+    <div class="post-meta">
+      <span class="by">By
+        {% for author in page.authors %}<span property="schema:author" typeof="schema:Person"><span property="schema:name">{{ author }}</span></span>{% unless forloop.last %}, {% endunless %}{% endfor %}
+      </span>
+      &middot;
+      <time class="date" property="schema:datePublished" datetime="{{ page.date | date_to_xmlschema }}">{{ page.date | date: "%Y-%m-%d" }}</time>
+      {% if page.last_modified_at %}
+      &middot; Updated <time property="schema:dateModified" datetime="{{ page.last_modified_at | date_to_xmlschema }}">{{ page.last_modified_at | date: "%e %B %Y" }}</time>
+      {% endif %}
+      {% if page.tags %}
+      &middot;
+      {% for tag in page.tags %}<span class="tag" property="schema:keywords">{{ tag }}</span>{% unless forloop.last %}, {% endunless %}{% endfor %}
+      {% endif %}
+    </div>
+
+    </header>
+    {% if page.toc %}
+    <div class="article-layout">
+      <nav class="article-contents" aria-label="On this page">
+        <h2>In this article</h2>
+        <ol>{% for section in page.toc %}<li><a href="#{{ section.id }}">{{ section.title }}</a></li>{% endfor %}</ol>
+      </nav>
+    {% endif %}
+    <div class="post-content" property="schema:articleBody">
+      {{ content }}
+    </div>
+    {% if page.toc %}</div>{% endif %}
+  </article>
+
+  <p class="post-nav-back"><a href="{{ '/news/' | relative_url }}">&larr; Back to all news</a></p>
+</main>
+
+<script type="module">
+  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+  document.querySelectorAll(".post-content pre code.language-mermaid").forEach(function (code) {
+    var div = document.createElement("div");
+    div.className = "mermaid";
+    div.textContent = code.textContent;
+    code.closest("pre").replaceWith(div);
+  });
+  mermaid.initialize({ startOnLoad: true, theme: "neutral" });
+</script>
+
+{% include footer.html %}

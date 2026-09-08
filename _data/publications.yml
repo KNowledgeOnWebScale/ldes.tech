@@ -1,0 +1,70 @@
+# Include work whose subject is LDES, an LDES implementation, or a substantive deployment.
+- year: 2025
+  title: The Linked Data Event Streams (LDES) profile for cultural heritage datasets
+  authors: Freire, N., Colpaert, P., Stabenau, A., Isaac, A., Meijers, E., and Tzouvaras, V.
+  venue: SWIB25 (Semantic Web in Libraries)
+  links:
+  - label: Talk announcement
+    url: https://forum.swib.org/t/the-linked-data-event-streams-ldes-profile-for-cultural-heritage-datasets/1450
+  relevance: An LDES application profile for exchanging cultural heritage data.
+  kind: Talk
+- year: 2024
+  title: Semantic and technically interoperable data exchange in the Flanders Smart Data Space
+  authors: Van Lancker, D., Logghe, S., Rojas, J., De Craene, A., Vanlishout, Z., and Colpaert, P.
+  venue: Proceedings of the 23rd International Semantic Web Conference
+  links:
+  - label: Preprint PDF
+    url: https://pietercolpaert.be/papers/preprint-iswc2024-vanlancker-vsds.pdf
+  - label: Vlaamse Smart Data Space website
+    url: https://www.vlaanderen.be/digitaal-vlaanderen/onze-diensten-en-platformen/vlaamse-smart-data-space
+  relevance: Describes LDES as the exchange mechanism and the building blocks used to publish and consume streams.
+  kind: Paper
+- year: 2022
+  title: Linked Data Event Streams in Solid containers
+  authors: Slabbinck, W., Dedecker, R., Vasireddy, S., Verborgh, R., and Colpaert, P.
+  venue: Proceedings of the 8th Workshop on Managing the Evolution and Preservation of the Data Web
+  links:
+  - label: Presentation at MEPDaW22
+    url: https://docs.google.com/presentation/d/1Ut07fAWJ7Xa1zEts1t4S6r_Gn3brMMjCvqO2xDJ12sE/edit?usp=sharing
+  relevance: Explores implementing LDES in Solid containers.
+  kind: Paper
+- year: 2022
+  title: Publishing cultural heritage collections of Ghent with Linked Data Event Streams
+  authors: Van de Vyvere, B., Van D'Huynslager, O., Atauil, A., Segers, M., Van Campe, L., Vandekeybus, N., Teugels,
+    S., Saenko, A., Pauwels, P.-J., and Colpaert, P.
+  venue: Proceedings of the Metadata and Semantics Research Conference 2021
+  links:
+  - label: PDF
+    url: https://drive.google.com/file/d/1jOX6h7Z4qyn95RAegPZLlH5-aH1_ach7/view?usp=sharing
+  - label: The published LDES
+    url: https://apidg.gent.be/opendata/adlib2eventstream/v1/
+  - label: Presentation at MTSR2021
+    url: https://t.co/Eur9xHfvCO
+  - label: 'Video: technical setup'
+    url: https://www.youtube.com/watch?v=8_0QSEj_Qhg
+  relevance: Documents publishing museum and archive collections as LDES.
+  kind: Paper
+- year: 2021
+  title: Publishing base registries as Linked Data Event Streams
+  authors: Van Lancker, D., Colpaert, P., Delva, H., Van de Vyvere, B., Rojas Meléndez, J., Dedecker, R., Michiels,
+    P., Buyle, R., De Craene, A., and Verborgh, R.
+  venue: Proceedings of the 21st International Conference on Web Engineering (ICWE 2021)
+  links:
+  - label: PDF
+    url: https://github.com/ddvlanck/Publishing-Base-Registries-As-LDES/raw/master/Linked-Data-Event-Streams.pdf
+  - label: Presented at ENDORSE2021
+    url: https://www.youtube.com/watch?v=89UVTahjCvo&t=1091s
+  relevance: Introduces LDES for replicating and synchronising base registries.
+  kind: Paper
+- year: 2021
+  title: Publishing the Marine Regions Gazetteer as a Linked Data Event Stream
+  authors: Lonneville, B., Delva, H., Portier, M., Van Maldeghem, L., Schepers, L., Bakeev, D., et al., and Colpaert,
+    P.
+  venue: CEUR Workshop Proceedings
+  links:
+  - label: PDF
+    url: http://ceur-ws.org/Vol-2969/paper8-s4biodiv.pdf
+  - label: The published LDES
+    url: https://marineregions.org/feed
+  relevance: Documents the Marine Regions LDES publication and its use for data exchange.
+  kind: Paper

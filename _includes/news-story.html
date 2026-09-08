@@ -1,0 +1,10 @@
+<article class="news-story{% if include.lead %} news-lead{% endif %}" typeof="schema:BlogPosting">
+  <div class="news-dateline">
+    <time property="schema:datePublished" datetime="{{ include.post.date | date_to_xmlschema }}">{{ include.post.date | date: "%e %B %Y" }}</time>
+  </div>
+  <div>
+    {% if include.lead %}<h2 property="schema:headline">{% else %}<h3 property="schema:headline">{% endif %}<a href="{{ include.post.url | relative_url }}">{{ include.post.title }}</a>{% if include.lead %}</h2>{% else %}</h3>{% endif %}
+    <p class="news-summary">{{ include.post.description | default: include.post.excerpt | strip_html | truncatewords: 45 }}</p>
+    {% if include.post.authors %}<p class="post-meta">By {{ include.post.authors | join: ", " }}</p>{% endif %}
+  </div>
+</article>

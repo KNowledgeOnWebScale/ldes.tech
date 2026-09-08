@@ -1,0 +1,33 @@
+# Site settings for ldes.tech
+title: LDES
+email: pieter.colpaert@ugent.be
+description: >-
+  Linked Data Event Streams (LDES): an open specification for publishing
+  append-only collections of immutable data on the Web, so consumers can replicate
+  data and follow updates.
+baseurl: ""
+url: "https://ldes.tech"
+
+plugins:
+  - jekyll-feed
+
+feed:
+  path: news/feed.xml
+
+future: true
+social_image: /assets/logo-ldes.svg
+
+defaults:
+  - scope:
+      path: ""
+      type: posts
+    values:
+      layout: post
+
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - README.md
+  - REVIEW.md
+  - coverage/
+  - vendor/

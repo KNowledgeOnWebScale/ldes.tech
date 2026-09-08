@@ -1,0 +1,160 @@
+# Source-linked examples, not an exhaustive catalog or a live availability guarantee.
+- title: BOSA DCAT-AP Feed
+  url: https://rdf-connect.github.io/belgium-dcat-ap-feed/index.trig
+  publisher: RDF-Connect / BOSA catalog
+  description: Belgian federal catalog metadata published by the RDF-Connect DCAT-AP pipeline.
+  source: https://ldes-explorer-ec66be.pages.ilabt.imec.be/datasets/rdf-connect-github-io-belgium-dcat-ap-feed-index-trig-9e711a0c/
+  explorer: https://ldes-explorer-ec66be.pages.ilabt.imec.be/datasets/rdf-connect-github-io-belgium-dcat-ap-feed-index-trig-9e711a0c/
+  reviewed: '2026-09-09'
+  evidence: Explorer reports a successful harvest on 2026-09-08.
+  report: https://semiceu.github.io/LDES-implementation-reports/bosa-dcat-ap-feed/
+- title: 'Collections of Ghent: Archief Gent'
+  url: https://apidg.gent.be/opendata/adlib2eventstream/v1/archiefgent/objecten
+  publisher: City of Ghent (CoGhent)
+  homepage: https://coghent.github.io/ag.html
+  description: Archival records held by the City Archive of Ghent.
+  source: https://coghent.github.io/ag.html
+  reviewed: '2026-09-09'
+  evidence: Publisher documentation; live harvesting not checked in this review.
+- title: 'Collections of Ghent: Design Museum Gent'
+  url: https://apidg.gent.be/opendata/adlib2eventstream/v1/dmg/objecten
+  publisher: City of Ghent (CoGhent)
+  homepage: https://coghent.github.io/dmg.html
+  description: Object records from Design Museum Gent's collection management system.
+  source: https://coghent.github.io/dmg.html
+  reviewed: '2026-09-09'
+  evidence: Publisher documentation; live harvesting not checked in this review.
+- title: 'Collections of Ghent: Design Museum Gent exhibitions'
+  url: https://apidg.gent.be/opendata/adlib2eventstream/v1/dmg/tentoonstellingen
+  publisher: City of Ghent (CoGhent)
+  homepage: https://coghent.github.io/exhibitiondmg.html
+  source: https://coghent.github.io/exhibitiondmg.html
+  description: Exhibition records from Design Museum Gent.
+  reviewed: '2026-09-09'
+  evidence: Publisher documentation; live harvesting not checked in this review.
+- title: 'Collections of Ghent: Huis van Alijn'
+  url: https://apidg.gent.be/opendata/adlib2eventstream/v1/hva/objecten
+  publisher: City of Ghent (CoGhent)
+  homepage: https://coghent.github.io/hva.html
+  description: Object records from folk-culture museum Huis van Alijn.
+  source: https://coghent.github.io/hva.html
+  reviewed: '2026-09-09'
+  evidence: Publisher documentation; live harvesting not checked in this review.
+- title: 'Collections of Ghent: Industriemuseum'
+  url: https://apidg.gent.be/opendata/adlib2eventstream/v1/industriemuseum/objecten
+  publisher: City of Ghent (CoGhent)
+  homepage: https://coghent.github.io/im.html
+  description: Object records from the Museum of Industry, Labour and Textile.
+  source: https://coghent.github.io/im.html
+  reviewed: '2026-09-09'
+  evidence: Publisher documentation; live harvesting not checked in this review.
+- title: 'Collections of Ghent: shared agents'
+  url: https://apidg.gent.be/opendata/adlib2eventstream/v1/adlib/personen
+  publisher: City of Ghent (CoGhent)
+  homepage: https://coghent.github.io/thesaurus.html
+  description: Shared person and organisation (agent) records reused across all five CoGhent heritage
+    institutions.
+  source: https://coghent.github.io/thesaurus.html
+  reviewed: '2026-09-09'
+  evidence: Publisher documentation; live harvesting not checked in this review.
+- title: 'Collections of Ghent: shared thesaurus'
+  url: https://apidg.gent.be/opendata/adlib2eventstream/v1/adlib/thesaurus
+  publisher: City of Ghent (CoGhent)
+  homepage: https://coghent.github.io/thesaurus.html
+  description: Shared controlled-vocabulary (thesaurus) terms reused across all five CoGhent heritage
+    institutions.
+  source: https://coghent.github.io/thesaurus.html
+  reviewed: '2026-09-09'
+  evidence: Publisher documentation; live harvesting not checked in this review.
+- title: 'Collections of Ghent: STAM'
+  url: https://apidg.gent.be/opendata/adlib2eventstream/v1/stam/objecten
+  publisher: City of Ghent (CoGhent)
+  homepage: https://coghent.github.io/stam.html
+  description: Object records from STAM, the city museum of Ghent.
+  source: https://coghent.github.io/stam.html
+  reviewed: '2026-09-09'
+  evidence: Publisher documentation; live harvesting not checked in this review.
+- title: ERA DCAT-AP Feed
+  url: https://era-europa-eu.gitlab.io/public/interoperable-data-programme/era-ontology/era-dcat-ap-feed/index.trig
+  publisher: European Union Agency for Railways
+  description: Changes to ERA catalog metadata, published as a DCAT-AP event stream.
+  source: https://ldes-explorer-ec66be.pages.ilabt.imec.be/datasets/era-europa-eu-gitlab-io-public-interoperable-data-progra-d546f72c/
+  explorer: https://ldes-explorer-ec66be.pages.ilabt.imec.be/datasets/era-europa-eu-gitlab-io-public-interoperable-data-progra-d546f72c/
+  reviewed: '2026-09-09'
+  evidence: Explorer reports a successful harvest on 2026-09-08.
+  report: https://semiceu.github.io/LDES-implementation-reports/era-dcat-ap-feed/
+- title: Marine Regions Gazetteer
+  url: https://marineregions.org/feed
+  publisher: VLIZ (Flanders Marine Institute)
+  homepage: https://marineregions.org
+  description: Marine and coastal place names and geographic areas from the Marine Regions Gazetteer.
+  source: https://ldes-explorer-ec66be.pages.ilabt.imec.be/datasets/marineregions-org-feed-771ab975/
+  reviewed: '2026-09-09'
+  evidence: Explorer reports a successful harvest on 2026-09-08.
+  explorer: https://ldes-explorer-ec66be.pages.ilabt.imec.be/datasets/marineregions-org-feed-771ab975/
+- title: MINT Metadata INTeroperability services
+  url: https://mint-ldes.ails.ece.ntua.gr/euscreenxl/1008/ldes
+  publisher: MINT / National Technical University of Athens
+  description: An audiovisual heritage metadata stream used in MINT demonstrators.
+  source: https://ldes-explorer-ec66be.pages.ilabt.imec.be/datasets/mint-ldes-ails-ece-ntua-gr-euscreenxl-1008-ldes-6c977a2a/
+  explorer: https://ldes-explorer-ec66be.pages.ilabt.imec.be/datasets/mint-ldes-ails-ece-ntua-gr-euscreenxl-1008-ldes-6c977a2a/
+  reviewed: '2026-09-09'
+  evidence: Explorer reports a partial harvest (size limit reached) on 2026-09-08.
+  report: https://semiceu.github.io/LDES-implementation-reports/cultural-heritage-feeds/
+- title: NERC SeaDataNet vocabulary stream
+  url: https://vocab.nerc.ac.uk/ldes/V12/
+  publisher: NERC Vocabulary Server
+  description: The V12 vocabulary exposed through the NERC Vocabulary Server’s LDES interface.
+  source: https://ldes-explorer-ec66be.pages.ilabt.imec.be/datasets/vocab-nerc-ac-uk-ldes-v12-982569c7/
+  explorer: https://ldes-explorer-ec66be.pages.ilabt.imec.be/datasets/vocab-nerc-ac-uk-ldes-v12-982569c7/
+  reviewed: '2026-09-09'
+  evidence: Explorer reports a successful harvest on 2026-09-08.
+- title: Rijksmuseum collection
+  url: https://data.rijksmuseum.nl/ldes/collection.json
+  publisher: Rijksmuseum
+  homepage: https://data.rijksmuseum.nl/docs/ldes/
+  description: Collection object data published as Linked Data, with updates available through an LDES.
+  source: https://data.rijksmuseum.nl/docs/ldes/
+  reviewed: '2026-09-09'
+  evidence: Publisher documentation; live harvesting not checked in this review.
+  report: https://semiceu.github.io/LDES-implementation-reports/cultural-heritage-feeds/
+- title: SeaDataNet environmental research projects
+  url: https://edmerp.seadatanet.org/ldes/feed
+  publisher: SeaDataNet
+  description: Records from the European Directory of Environmental Research Projects (EDMERP).
+  source: https://ldes-explorer-ec66be.pages.ilabt.imec.be/datasets/edmerp-seadatanet-org-ldes-feed-977a054d/
+  explorer: https://ldes-explorer-ec66be.pages.ilabt.imec.be/datasets/edmerp-seadatanet-org-ldes-feed-977a054d/
+  reviewed: '2026-09-09'
+  evidence: Explorer reports a successful harvest on 2026-09-08.
+- title: SeaDataNet marine organisations
+  url: https://edmo.seadatanet.org/ldes/feed
+  publisher: SeaDataNet
+  description: Records from the European Directory of Marine Organisations (EDMO).
+  source: https://ldes-explorer-ec66be.pages.ilabt.imec.be/datasets/edmo-seadatanet-org-ldes-feed-4b3ffce6/
+  explorer: https://ldes-explorer-ec66be.pages.ilabt.imec.be/datasets/edmo-seadatanet-org-ldes-feed-4b3ffce6/
+  reviewed: '2026-09-09'
+  evidence: Explorer reports a successful harvest on 2026-09-08.
+- title: Swedish DCAT catalog feed
+  url: https://www.pieter.pm/dcat/sweden/feed.ttl
+  publisher: Pieter Colpaert (feed hosted at pieter.pm)
+  description: An example stream of changes to Sweden’s national DCAT catalog.
+  source: https://github.com/SEMICeu/LDES-implementation-reports#public-ldes-examples
+  reviewed: '2026-09-09'
+  evidence: Listed in the SEMIC implementation reports; live harvesting not checked in this review.
+- title: Waterkwaliteit Brugge
+  url: https://waterkwaliteit-brugge-ldes.kindflower-25e41809.westeurope.azurecontainerapps.io/Waterkwaliteit
+  publisher: Not identified in explorer metadata
+  description: Water quality measurements for Bruges.
+  source: https://ldes-explorer-ec66be.pages.ilabt.imec.be/datasets/waterkwaliteit-brugge-ldes-kindflower-25e41809-westeurop-f46762d0/
+  explorer: https://ldes-explorer-ec66be.pages.ilabt.imec.be/datasets/waterkwaliteit-brugge-ldes-kindflower-25e41809-westeurop-f46762d0/
+  reviewed: '2026-09-09'
+  evidence: Explorer reports a successful harvest on 2026-09-08.
+  homepage: https://www.vlaanderen.be/vlaamse-smart-data-space-portaal/use-cases/water-data-space
+- title: WoRMS / Aphia feed
+  url: https://aphia.org/feed
+  publisher: VLIZ (Flanders Marine Institute)
+  description: Taxonomic records from the World Register of Marine Species (WoRMS).
+  source: https://ldes-explorer-ec66be.pages.ilabt.imec.be/datasets/aphia-org-feed-c26c5c01/
+  explorer: https://ldes-explorer-ec66be.pages.ilabt.imec.be/datasets/aphia-org-feed-c26c5c01/
+  reviewed: '2026-09-09'
+  evidence: Explorer reports a successful harvest on 2026-09-08.

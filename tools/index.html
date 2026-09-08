@@ -1,0 +1,81 @@
+---
+title: Tools
+description: Tools for inspecting, publishing, and consuming LDES, including LDFetch, RDF-Connect, and OpenLDES.
+permalink: /tools/
+---
+{% include header.html %}
+{% include nav.html %}
+
+<main id="main-content" class="container">
+  <section>
+    <h1>Tools</h1>
+    <p class="section-intro">
+      Start by inspecting a feed in your browser, or use a client and publishing pipeline to integrate LDES into your applications.
+    </p>
+  </section>
+
+  <section id="ldfetch">
+    <h2>LDFetch</h2>
+    <p>
+      <a href="https://www.pieter.pm/ldfetch/">LDFetch</a> is a browser tool for exploring Linked Data.
+      Paste an LDES entry point into the URL field and fetch it, then open the <strong>Hypermedia</strong> pane
+      to inspect the stream’s links and navigate its pages. This is a useful way to understand a feed before
+      setting up a harvesting pipeline.
+    </p>
+    <p>Try one of the built-in LDES examples or copy an entry point from our <a href="{{ '/examples/' | relative_url }}">LDES examples</a>.</p>
+  </section>
+
+  <section id="rdf-connect">
+    <h2 typeof="schema:SoftwareApplication"><span property="schema:name">RDF-Connect</span> <span class="badge">JavaScript / TypeScript</span></h2>
+    <p>
+      <a href="https://github.com/rdf-connect" property="schema:sameAs">RDF-Connect</a> is an initiative that lets you
+      declaratively define RDF processing pipelines in RDF itself, executed by runners for different languages and
+      environments (JavaScript being the most mature today). It hosts the reference LDES tooling used throughout the
+      community:
+    </p>
+    <ul>
+      <li>
+        <a href="https://github.com/rdf-connect/ldes-client"><strong>ldes-client</strong></a> &mdash;
+        the TREE/LDES client to replicate and synchronise an LDES from JavaScript or TypeScript, either as a library
+        or as an RDF-Connect processor.
+      </li>
+      <li>
+        <a href="https://github.com/rdf-connect/ldes-server"><strong>ldes-server</strong></a> &mdash;
+        an LDES server implementation built within the Community Solid Server, for publishing one or more event streams.
+      </li>
+      <li>
+        <a href="https://github.com/rdf-connect/ldes2sparql"><strong>ldes2sparql</strong></a> &mdash;
+        materialises an LDES into a SPARQL graph store, keeping it incrementally up to date.
+      </li>
+    </ul>
+  </section>
+
+  <section id="openldes">
+    <h2 typeof="schema:SoftwareApplication"><span property="schema:name">OpenLDES</span> <span class="badge accent">Java</span></h2>
+    <p>
+      <a href="https://openldes.org/" property="schema:sameAs">OpenLDES</a> is the open-source ecosystem that grew out
+      of the Flemish government's Vlaamse Smart Data Space (VSDS) programme. It provides a Java-based toolchain to
+      publish and consume both open and closed data as LDES, structured around three pipeline archetypes: a
+      <strong>publishing</strong> pipeline (turning sources into an LDES), a <strong>consuming</strong> pipeline
+      (harvesting an LDES into a database, file store or message queue), and an <strong>intermediary</strong> pipeline
+      (republishing an enriched or restructured LDES).
+    </p>
+    <ul>
+      <li><a href="https://openldes.github.io/LDESServer/">LDES Server</a> &mdash; a configurable server for ingesting and publishing LDES views.</li>
+      <li><a href="https://openldes.github.io/Linked-Data-Interactions/">Linked Data Interactions (LDIO)</a> &mdash; a pipeline framework of input/transform/output components for LDES.</li>
+      <li><a href="https://github.com/OpenLDES/Onboarding-Example">Onboarding example</a> &mdash; a hands-on tutorial to get a first pipeline running.</li>
+    </ul>
+  </section>
+
+  <section id="other">
+    <h2>Other implementations</h2>
+    <p>
+      The LDES specification is intentionally implementable from any RDF library, so several other clients and servers
+      exist beyond the two ecosystems above &mdash; see the
+      <a href="https://github.com/SEMICeu/LinkedDataEventStreams">specification repository</a> and the
+      <a href="{{ '/community/' | relative_url }}">community chat</a> for pointers to the latest ones.
+    </p>
+  </section>
+</main>
+
+{% include footer.html %}

@@ -1,0 +1,16 @@
+---
+title: Page not found
+permalink: /404.html
+---
+{% include header.html %}
+{% include nav.html %}
+
+<main id="main-content" class="container">
+  <section>
+    <h1>Page not found</h1>
+    <p>Sorry, we couldn't find that page. Try the <a href="{{ '/' | relative_url }}">homepage</a>, the
+    <a href="{{ '/examples/' | relative_url }}">examples</a>, or the <a href="{{ '/news/' | relative_url }}">news</a> section.</p>
+  </section>
+</main>
+
+{% include footer.html %}
