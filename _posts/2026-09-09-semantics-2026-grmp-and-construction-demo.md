@@ -19,6 +19,8 @@ Two LDES-related contributions have been accepted for [SEMANTiCS 2026](https://2
 
 This is directly relevant to everyone running an [LDES feed among our examples]({{ '/examples/' | relative_url }}): keeping a feed reachable, well-formed and up-to-date over time is exactly the kind of maintenance burden that motivated LDES's append-only, cache-friendly design in the first place, and GRMP tackles the operational side of that promise. VLIZ, incidentally, is also the publisher of the [Marine Regions Gazetteer LDES]({{ '/examples/' | relative_url }}), one of the longest-running production feeds among our examples.
 
+{% include paper-citation.html paper="marine-regions" context="For the research behind the Marine Regions feed mentioned above, read the original deployment paper." %}
+
 ## A demo worth watching: streaming construction data with LDES
 
 Also accepted at SEMANTiCS 2026 is a demo on **Streaming Interoperable Construction Data with LDES**, by Carlos Ramonell and Mathias Bonduel, which comes with a genuinely nice explainer video:

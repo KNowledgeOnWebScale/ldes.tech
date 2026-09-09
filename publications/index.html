@@ -1,5 +1,5 @@
 ---
-title: Publications
+title: Research papers
 description: Peer-reviewed papers, talks and preprints about Linked Data Event Streams.
 permalink: /publications/
 ---
@@ -8,7 +8,7 @@ permalink: /publications/
 
 <main id="main-content" class="container">
   <section>
-    <h1>Publications</h1>
+    <h1>Research papers</h1>
     <p class="section-intro">
       Papers and talks about the LDES specification, its implementation, and deployments that use it to exchange data.
       Each entry explains its relevance. Work focused on TREE indexing, query traversal, or general Linked Data infrastructure
@@ -21,12 +21,13 @@ permalink: /publications/
     <h2>{{ yeargroup.name }}</h2>
     <ul class="publication-list">
       {% for pub in yeargroup.items %}
-      <li typeof="{% if pub.kind == 'Talk' %}schema:CreativeWork{% else %}schema:ScholarlyArticle{% endif %}" resource="{{ pub.links.first.url | default: '#' }}">
+      <li id="{{ pub.id }}" typeof="{% if pub.kind == 'Talk' %}schema:CreativeWork{% else %}schema:ScholarlyArticle{% endif %}" resource="{{ pub.links.first.url | default: '#' }}">
         <h3 property="schema:headline schema:name">{{ pub.title }}</h3>
         <p class="meta">{{ pub.kind }}</p>
         <p>{{ pub.relevance }}</p>
         <p class="meta" property="schema:author">{{ pub.authors }}</p>
         <p class="meta"><em property="schema:isPartOf">{{ pub.venue }}</em></p>
+        {% if pub.doi %}<p><a href="https://doi.org/{{ pub.doi }}">DOI: {{ pub.doi }}</a></p>{% endif %}
         {% if pub.links %}
         <p>
           {% for link in pub.links %}

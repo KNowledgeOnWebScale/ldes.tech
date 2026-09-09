@@ -1,0 +1,17 @@
+{% assign cited_paper = site.data.publications | where: "id", include.paper | first %}
+{% if cited_paper %}
+<aside class="paper-citation" aria-label="Related research">
+  <p class="paper-citation-heading">Read the paper and cite this work</p>
+  {% if include.context %}<p class="paper-citation-context">{{ include.context | escape }}</p>{% endif %}
+  <div typeof="schema:ScholarlyArticle" resource="{% if cited_paper.doi %}https://doi.org/{{ cited_paper.doi }}{% else %}{{ cited_paper.links.first.url }}{% endif %}">
+    <p class="paper-citation-title"><cite property="schema:name"><a href="{{ cited_paper.links.first.url }}">{{ cited_paper.title | escape }}</a></cite></p>
+    <p class="paper-citation-meta">{{ cited_paper.venue | escape }} &middot; {{ cited_paper.year }}</p>
+    <details class="paper-citation-details">
+      <summary>Cite this work</summary>
+      <p class="paper-citation-text">{{ cited_paper.authors | escape }} ({{ cited_paper.year }}). <cite>{{ cited_paper.title | escape }}</cite>. {{ cited_paper.venue | escape }}{% if cited_paper.pages %}, pp. {{ cited_paper.pages }}{% endif %}. {% if cited_paper.doi %}<a href="https://doi.org/{{ cited_paper.doi }}">https://doi.org/{{ cited_paper.doi }}</a>{% else %}<a href="{{ cited_paper.links.first.url }}">{{ cited_paper.links.first.url }}</a>{% endif %}</p>
+      {% if cited_paper.citation_source %}<p><a href="{{ cited_paper.citation_source }}">Publication record</a></p>{% endif %}
+    </details>
+  </div>
+  <a class="paper-citation-discover" href="{{ '/publications/' | relative_url }}">Discover other papers &rarr;</a>
+</aside>
+{% endif %}

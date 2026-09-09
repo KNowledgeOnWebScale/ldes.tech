@@ -42,6 +42,15 @@ permalink: /examples/
     </dl>
   </section>
 
+  <section aria-labelledby="openldes-examples">
+    <h2 id="openldes-examples">Build a data space with OpenLDES</h2>
+    <p>The <a href="https://openldes.org/">OpenLDES community</a> provides tools for publishing, consuming,
+      and republishing streams. The Flanders Smart Data Space is a documented example of using LDES
+      to exchange data across organisations. Explore the <a href="{{ '/tools/#openldes' | relative_url }}">OpenLDES tooling</a>
+      and the architecture described in the paper.</p>
+    {% include paper-citation.html paper="vsds" context="A deployment study of LDES as the shared exchange mechanism in the Flanders Smart Data Space." %}
+  </section>
+
   <section aria-labelledby="example-feeds">
     <h2 id="example-feeds">Try an example feed</h2>
     <p>
@@ -53,7 +62,7 @@ permalink: /examples/
     <ul class="example-list" typeof="dcat:Catalog" resource="https://ldes.tech/examples/">
       <meta property="dct:title" content="LDES examples"/>
       {% for feed in site.data.feeds %}
-      <li property="dcat:dataset" typeof="dcat:Dataset" resource="{{ feed.url }}">
+      <li{% if feed.paper %} id="example-{{ feed.paper }}"{% endif %} property="dcat:dataset" typeof="dcat:Dataset" resource="{{ feed.url }}">
         <h3 property="dct:title"><a href="{{ feed.url }}">{{ feed.title }}</a></h3>
         <p class="meta">Publisher: <span property="dct:publisher">{{ feed.publisher }}</span></p>
         <p property="dct:description">{{ feed.description }}</p>
@@ -63,6 +72,7 @@ permalink: /examples/
         {% if feed.homepage %}
         <p><a href="{{ feed.homepage }}" property="foaf:homepage">More about this dataset &rarr;</a></p>
         {% endif %}
+        {% if feed.paper %}{% include paper-citation.html paper=feed.paper context=feed.paper_context %}{% endif %}
       </li>
       {% endfor %}
     </ul>

@@ -536,3 +536,27 @@ header.site-header p.tagline { font-style: italic; font-weight: 400; }
   .adopter-logo { justify-content: flex-start; }
   .adopter-logo img { width: auto; max-width: 100%; max-height: 4rem; }
 }
+
+/* Contextual research references */
+.paper-citation {
+  margin: 1.75rem 0;
+  padding: 1.4rem 1.5rem;
+  background: #f5f5fc;
+  border: 1px solid #e1e1ef;
+  border-left: 4px solid var(--primary);
+  border-radius: 4px;
+  overflow-wrap: anywhere;
+}
+.paper-citation .paper-citation-heading { margin: 0 0 0.6rem; color: var(--text); font-size: 1.1rem; font-weight: 700; }
+.paper-citation .paper-citation-context { margin: 0 0 1rem; color: #505064; font-size: 0.95rem; }
+.paper-citation .paper-citation-title { margin: 0 0 0.4rem; font-weight: 700; line-height: 1.4; }
+.paper-citation-title cite { font-style: normal; }
+.paper-citation .paper-citation-meta { margin: 0 0 1rem; font-size: 0.85rem; color: #62626d; }
+.paper-citation-details { margin: 0.75rem 0 1rem; font-size: 0.9rem; }
+.paper-citation-details summary { width: fit-content; cursor: pointer; color: var(--primary-dark); font-weight: 700; }
+.paper-citation-details summary:hover { text-decoration: underline; }
+.paper-citation .paper-citation-text { margin: 0.75rem 0; padding: 1rem; background: white; border: 1px solid #e1e1ef; user-select: all; }
+.paper-citation-discover { font-size: 0.85rem; text-decoration: underline; }
+@media (max-width: 640px) {
+  .paper-citation { padding: 1.1rem; }
+}

@@ -24,6 +24,9 @@
   source: https://coghent.github.io/dmg.html
   reviewed: '2026-09-09'
   evidence: Publisher documentation; live harvesting not checked in this review.
+  paper: coghent
+  paper_context: The CoGhent paper documents publishing cultural heritage collections from Ghent as Linked
+    Data Event Streams.
 - title: 'Collections of Ghent: Design Museum Gent exhibitions'
   url: https://apidg.gent.be/opendata/adlib2eventstream/v1/dmg/tentoonstellingen
   publisher: City of Ghent (CoGhent)
@@ -92,6 +95,9 @@
   reviewed: '2026-09-09'
   evidence: Explorer reports a successful harvest on 2026-09-08.
   explorer: https://ldes-explorer-ec66be.pages.ilabt.imec.be/datasets/marineregions-org-feed-771ab975/
+  paper: marine-regions
+  paper_context: How VLIZ publishes the Marine Regions Gazetteer as an LDES so consumers can replicate
+    data and build their own services.
 - title: MINT Metadata INTeroperability services
   url: https://mint-ldes.ails.ece.ntua.gr/euscreenxl/1008/ldes
   publisher: MINT / National Technical University of Athens

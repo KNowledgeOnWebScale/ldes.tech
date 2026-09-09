@@ -56,3 +56,6 @@ If more dataspaces rely on Linked Data and Event Streaming, interoperability _ac
 That’s how Linked Data Event Streams (LDES) enables the exchange of interoperable datasets within and across dataspaces by applying event sourcing on Web APIs.
 Publishing an LDES yourself is light-weight by design to facilitate adoption.
 The responsibility of knowing where you are in the stream is fully up to the subscribers, which can be done with the open-source LDES clients.
+
+
+{% include paper-citation.html paper="vsds" context="Related research: the VSDS in-use paper documents how this approach is applied in Flanders." %}

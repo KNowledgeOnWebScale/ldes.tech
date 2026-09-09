@@ -52,6 +52,8 @@ A SPARQL endpoint, an OGC API, or a GraphQL service may be useful today and opti
 If a GraphQL API stops aligning with the publisher's priorities, the publisher can bring it offline, while the consumer that still needs it can spin up their own GraphQL server that replicates and synchronises from the event source, preserving functionality without forcing the publisher to keep every interface alive forever.
 If you maintain a base registry or any dataset that changes over time, start by publishing the LDES at the event source. Everything else can — and should — derive from there.
 
+{% include paper-citation.html paper="base-registries" context="This paper presents the base-registry architecture behind the argument in this post." %}
+
 For the technical details, see the LDES specification at [https://w3id.org/ldes/specification](https://w3id.org/ldes/specification).
 Various implementations of clients and servers are available. In order to interact with the community, visit [https://ldes.tech](https://ldes.tech).
 

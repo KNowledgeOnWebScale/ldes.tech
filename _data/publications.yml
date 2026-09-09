@@ -1,4 +1,4 @@
-# Include work whose subject is LDES, an LDES implementation, or a substantive deployment.
+# Cite papers by stable id with the paper-citation.html include.
 - year: 2025
   title: The Linked Data Event Streams (LDES) profile for cultural heritage datasets
   authors: Freire, N., Colpaert, P., Stabenau, A., Isaac, A., Meijers, E., and Tzouvaras, V.
@@ -8,10 +8,11 @@
     url: https://forum.swib.org/t/the-linked-data-event-streams-ldes-profile-for-cultural-heritage-datasets/1450
   relevance: An LDES application profile for exchanging cultural heritage data.
   kind: Talk
-- year: 2024
+  id: heritage-profile
+- year: 2025
   title: Semantic and technically interoperable data exchange in the Flanders Smart Data Space
   authors: Van Lancker, D., Logghe, S., Rojas, J., De Craene, A., Vanlishout, Z., and Colpaert, P.
-  venue: Proceedings of the 23rd International Semantic Web Conference
+  venue: The Semantic Web – ISWC 2024, Part III (in-use track; proceedings published in 2025)
   links:
   - label: Preprint PDF
     url: https://pietercolpaert.be/papers/preprint-iswc2024-vanlancker-vsds.pdf
@@ -19,6 +20,10 @@
     url: https://www.vlaanderen.be/digitaal-vlaanderen/onze-diensten-en-platformen/vlaamse-smart-data-space
   relevance: Describes LDES as the exchange mechanism and the building blocks used to publish and consume streams.
   kind: Paper
+  id: vsds
+  pages: 289–303
+  doi: 10.1007/978-3-031-77847-6_16
+  citation_source: https://biblio.ugent.be/publication/01JEZJ1JJBBHX7X2RXF1VB24GC
 - year: 2022
   title: Linked Data Event Streams in Solid containers
   authors: Slabbinck, W., Dedecker, R., Vasireddy, S., Verborgh, R., and Colpaert, P.
@@ -28,6 +33,7 @@
     url: https://docs.google.com/presentation/d/1Ut07fAWJ7Xa1zEts1t4S6r_Gn3brMMjCvqO2xDJ12sE/edit?usp=sharing
   relevance: Explores implementing LDES in Solid containers.
   kind: Paper
+  id: solid-containers
 - year: 2022
   title: Publishing cultural heritage collections of Ghent with Linked Data Event Streams
   authors: Van de Vyvere, B., Van D'Huynslager, O., Atauil, A., Segers, M., Van Campe, L., Vandekeybus, N., Teugels,
@@ -44,6 +50,7 @@
     url: https://www.youtube.com/watch?v=8_0QSEj_Qhg
   relevance: Documents publishing museum and archive collections as LDES.
   kind: Paper
+  id: coghent
 - year: 2021
   title: Publishing base registries as Linked Data Event Streams
   authors: Van Lancker, D., Colpaert, P., Delva, H., Van de Vyvere, B., Rojas Meléndez, J., Dedecker, R., Michiels,
@@ -56,15 +63,21 @@
     url: https://www.youtube.com/watch?v=89UVTahjCvo&t=1091s
   relevance: Introduces LDES for replicating and synchronising base registries.
   kind: Paper
+  id: base-registries
+  doi: 10.1007/978-3-030-74296-6_3
+  pages: 28–36
+  citation_source: https://ruben.verborgh.org/publications/vanlancker_icwe_2021/
 - year: 2021
   title: Publishing the Marine Regions Gazetteer as a Linked Data Event Stream
-  authors: Lonneville, B., Delva, H., Portier, M., Van Maldeghem, L., Schepers, L., Bakeev, D., et al., and Colpaert,
-    P.
-  venue: CEUR Workshop Proceedings
+  authors: Lonneville, B., Delva, H., Portier, M., Van Maldeghem, L., Schepers, L., Bakeev, D., Vanhoorne, B., Tyberghein,
+    L., and Colpaert, P.
+  venue: S4BioDiv 2021, CEUR Workshop Proceedings, vol. 2969
   links:
   - label: PDF
-    url: http://ceur-ws.org/Vol-2969/paper8-s4biodiv.pdf
+    url: https://ceur-ws.org/Vol-2969/paper8-s4biodiv.pdf
   - label: The published LDES
     url: https://marineregions.org/feed
   relevance: Documents the Marine Regions LDES publication and its use for data exchange.
   kind: Paper
+  id: marine-regions
+  citation_source: https://ceur-ws.org/Vol-2969/paper8-s4biodiv.pdf

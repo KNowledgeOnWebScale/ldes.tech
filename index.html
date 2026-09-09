@@ -116,17 +116,12 @@ hide_nav_brand: true
       <a href="{{ '/community/' | relative_url }}">Build with the community <span aria-hidden="true">&rarr;</span></a>
     </div>
   </section>
-
   <section id="quicklinks">
     <h2>Find your way around</h2>
     <ul class="card-list cols-3">
       <li>
         <h3><a href="{{ '/examples/' | relative_url }}">LDES examples</a></h3>
         <p>Discover known LDES feeds and their sources &mdash; from museum collections to marine gazetteers.</p>
-      </li>
-      <li>
-        <h3><a href="{{ '/publications/' | relative_url }}">Publications</a></h3>
-        <p>Peer-reviewed papers, talks and preprints about LDES, its vocabulary, and how it is used in the wild.</p>
       </li>
       <li>
         <h3><a href="{{ '/news/' | relative_url }}">News and blog</a></h3>
@@ -157,6 +152,10 @@ hide_nav_brand: true
     </div>
     <p><a href="{{ '/news/' | relative_url }}">View all news &rarr;</a></p>
   </section>
+  <section id="paper">
+          {% include paper-citation.html paper="base-registries" context="The original base registries paper introduces LDES as a common source for independent data services." %}
+  </section>
+  
 
 </main>
 
