@@ -51,61 +51,70 @@ hide_nav_brand: true
     </p>
   </section>
 
-  <section id="supported-by" aria-labelledby="supported-by-heading" about="https://ldes.tech/#organization">
-    <h2 id="supported-by-heading">Who supports and implements LDES</h2>
-
-    <div class="org-spotlight">
-      <a class="org-logo org-logo-dark org-logo-spotlight" href="https://interoperable-europe.ec.europa.eu/collection/semic-support-centre/linked-data-event-streams-ldes" resource="https://interoperable-europe.ec.europa.eu/" property="schema:funder schema:maintainer" typeof="schema:GovernmentOrganization">
-        <img src="{{ '/assets/logos/interoperable-europe.svg' | relative_url }}" alt="" property="schema:logo"/>
-        <span class="org-logo-label" property="schema:name">Interoperable Europe</span>
-      </a>
-      <p>
-        <a href="https://interoperable-europe.ec.europa.eu/collection/semic-support-centre/linked-data-event-streams-ldes"><strong>Interoperable Europe</strong></a>,
-        the European Commission programme for cross-border digital public services, is the main current funder
-        and maintainer of the LDES specification.
-      </p>
+  <section id="supported-by" class="ecosystem" aria-labelledby="supported-by-heading" about="https://ldes.tech/#organization">
+    <div class="ecosystem-intro">
+      <h2 id="supported-by-heading">An open specification.<br>Real-world adoption.</h2>
+      <p>Supported by public institutions. Put to work by cities, museums, and research organisations.
+        Discover the people turning shared data into reusable services.</p>
     </div>
 
-    <ul class="org-row" aria-label="Also supporting LDES">
-      <li>
-        <a class="org-logo" href="https://www.vlaanderen.be/digitaal-vlaanderen/onze-diensten-en-platformen/vlaamse-smart-data-space" resource="https://www.vlaanderen.be/digitaal-vlaanderen" property="schema:funder" typeof="schema:GovernmentOrganization">
-          <img src="{{ '/assets/logos/vlaanderen.svg' | relative_url }}" alt="" property="schema:logo"/>
-          <span class="org-logo-label" property="schema:name">Flanders (Vlaamse Smart Data Space)</span>
-        </a>
-      </li>
-    </ul>
+    <div class="supporters">
+      <a class="supporter supporter-primary" href="https://interoperable-europe.ec.europa.eu/collection/semic-support-centre/linked-data-event-streams-ldes" resource="https://interoperable-europe.ec.europa.eu/" property="schema:funder schema:maintainer" typeof="schema:GovernmentOrganization">
+        <div class="supporter-logo"><img src="{{ '/assets/logos/interoperable-europe.svg' | relative_url }}" alt="" property="schema:logo" loading="lazy"/></div>
+        <h3 property="schema:name">Interoperable Europe</h3>
+        <p>The main current funder and maintainer of LDES, through the European Commission programme for cross-border digital public services.</p>
+        <span class="org-link">Discover the programme <span aria-hidden="true">&rarr;</span></span>
+      </a>
+      <a class="supporter supporter-flanders" href="https://openldes.org/" resource="https://www.vlaanderen.be/digitaal-vlaanderen" property="schema:funder" typeof="schema:GovernmentOrganization">
+        <div class="supporter-logo"><img src="{{ '/assets/logos/vlaanderen.svg' | relative_url }}" alt="" property="schema:logo" loading="lazy"/></div>
+        <h3 property="schema:name">Flanders</h3>
+        <p>Supporting LDES through the OpenLDES community.</p>
+        <span class="org-link">Explore the community <span aria-hidden="true">&rarr;</span></span>
+      </a>
+    </div>
 
-    <h3>Implementers and early adopters</h3>
-    <p class="section-intro">
-      A growing list of organisations publish or consume LDES in production. A few examples:
-    </p>
-    <ul class="org-grid">
+    <div class="adopters-intro">
+      <h3>Already putting LDES to work</h3>
+      <p>Different domains. A shared way to publish and follow change.</p>
+    </div>
+    <ul class="adopters">
       <li>
-        <a class="org-logo" href="https://coghent.github.io/API/" resource="https://stad.gent/" typeof="schema:GovernmentOrganization">
-          <img src="{{ '/assets/logos/gent.svg' | relative_url }}" alt="" property="schema:logo"/>
-          <span class="org-logo-label" property="schema:name">City of Ghent (CoGhent)</span>
+        <a class="adopter" href="https://coghent.github.io/API/" resource="https://stad.gent/" typeof="schema:GovernmentOrganization">
+          <div class="adopter-logo"><img src="{{ '/assets/logos/gent.svg' | relative_url }}" alt="" property="schema:logo" loading="lazy"/></div>
+          <h4 property="schema:name">City of Ghent</h4>
+          <p>Sharing the CoGhent heritage collections.</p>
+          <span class="org-link">Explore CoGhent <span aria-hidden="true">&rarr;</span></span>
         </a>
       </li>
       <li>
-        <a class="org-logo" href="https://open-science.vliz.be/linked-data" resource="https://www.vliz.be/" typeof="schema:ResearchOrganization">
-          <img src="{{ '/assets/logos/vliz.jpg' | relative_url }}" alt="" property="schema:logo"/>
-          <span class="org-logo-label" property="schema:name">VLIZ (Flanders Marine Institute)</span>
+        <a class="adopter" href="https://open-science.vliz.be/linked-data" resource="https://www.vliz.be/" typeof="schema:ResearchOrganization">
+          <div class="adopter-logo"><img src="{{ '/assets/logos/vliz.jpg' | relative_url }}" alt="" property="schema:logo" loading="lazy"/></div>
+          <h4 property="schema:name">VLIZ</h4>
+          <p>Connecting marine data through Linked Data.</p>
+          <span class="org-link">Explore marine data <span aria-hidden="true">&rarr;</span></span>
         </a>
       </li>
       <li>
-        <a class="org-logo" href="https://data.rijksmuseum.nl/docs/ldes/" resource="https://www.rijksmuseum.nl/" typeof="schema:Organization">
-          <img src="{{ '/assets/logos/rijksmuseum.svg' | relative_url }}" alt="" property="schema:logo"/>
-          <span class="org-logo-label" property="schema:name">Rijksmuseum</span>
+        <a class="adopter" href="https://data.rijksmuseum.nl/docs/ldes/" resource="https://www.rijksmuseum.nl/" typeof="schema:Organization">
+          <div class="adopter-logo"><img src="{{ '/assets/logos/rijksmuseum.svg' | relative_url }}" alt="" property="schema:logo" loading="lazy"/></div>
+          <h4 property="schema:name">Rijksmuseum</h4>
+          <p>Making collection updates available to reusers.</p>
+          <span class="org-link">Explore the collection <span aria-hidden="true">&rarr;</span></span>
         </a>
       </li>
       <li>
-        <a class="org-logo" href="https://www.era.europa.eu/" resource="https://www.era.europa.eu/" typeof="schema:GovernmentOrganization">
-          <img src="{{ '/assets/logos/era.png' | relative_url }}" alt="" property="schema:logo"/>
-          <span class="org-logo-label" property="schema:name">European Union Agency for Railways</span>
+        <a class="adopter" href="https://semiceu.github.io/LDES-implementation-reports/era-dcat-ap-feed/" resource="https://www.era.europa.eu/" typeof="schema:GovernmentOrganization">
+          <div class="adopter-logo"><img src="{{ '/assets/logos/era.png' | relative_url }}" alt="" property="schema:logo" loading="lazy"/></div>
+          <h4 property="schema:name">EU Agency for Railways</h4>
+          <p>Publishing catalog changes as an event stream.</p>
+          <span class="org-link">Read the report <span aria-hidden="true">&rarr;</span></span>
         </a>
       </li>
     </ul>
-    <p><a href="{{ '/examples/' | relative_url }}">See more real-world examples &rarr;</a></p>
+    <div class="ecosystem-actions">
+      <a class="ecosystem-button" href="{{ '/examples/' | relative_url }}">See LDES in action <span aria-hidden="true">&rarr;</span></a>
+      <a href="{{ '/community/' | relative_url }}">Build with the community <span aria-hidden="true">&rarr;</span></a>
+    </div>
   </section>
 
   <section id="quicklinks">
@@ -162,7 +171,7 @@ hide_nav_brand: true
   "email": "mailto:pieter.colpaert@ugent.be",
   "funder": [
     { "@type": "GovernmentOrganization", "name": "Interoperable Europe", "url": "https://interoperable-europe.ec.europa.eu/collection/semic-support-centre/linked-data-event-streams-ldes" },
-    { "@type": "GovernmentOrganization", "name": "Flanders (Vlaamse Smart Data Space)", "url": "https://www.vlaanderen.be/digitaal-vlaanderen/onze-diensten-en-platformen/vlaamse-smart-data-space" }
+    { "@type": "GovernmentOrganization", "name": "Flanders (OpenLDES community)", "url": "https://openldes.org/" }
   ],
   "maintainer": { "@type": "GovernmentOrganization", "name": "Interoperable Europe", "url": "https://interoperable-europe.ec.europa.eu/collection/semic-support-centre/linked-data-event-streams-ldes" },
   "sameAs": [
