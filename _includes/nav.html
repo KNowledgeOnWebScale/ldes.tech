@@ -1,8 +1,9 @@
-<a href="#main-content" class="skip-link">Skip to main content</a>
 <nav class="topnav" aria-label="Main navigation">
+  {% unless page.hide_nav_brand %}
   <a href="{{ '/' | relative_url }}" class="nav-brand" aria-label="LDES home">
     <img src="{{ '/assets/logo-ldes.svg' | relative_url }}" alt="LDES logo" class="nav-logo"/>
   </a>
+  {% endunless %}
   <ul>
     <li><a href="https://w3id.org/ldes/specification">Specification</a></li>
     <li><a href="{{ '/examples/' | relative_url }}">Examples</a></li>

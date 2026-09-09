@@ -369,7 +369,15 @@ footer a { color: var(--primary); }
    Responsive
 ----------------------------- */
 @media (max-width: 640px) {
-  header.site-header { padding: 2.5rem 1rem; }
+  header.site-header {
+    padding: 2.5rem 1rem;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
   header.site-header h1 { font-size: 1.6rem; }
 }
 
