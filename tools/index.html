@@ -67,13 +67,22 @@ permalink: /tools/
     </ul>
   </section>
 
-  <section id="other">
-    <h2>Other implementations</h2>
+  <section id="building-your-own-client">
+    <h2>Building your own client</h2>
     <p>
       The LDES specification is intentionally implementable from any RDF library, so several other clients and servers
       exist beyond the two ecosystems above &mdash; see the
       <a href="https://github.com/SEMICeu/LinkedDataEventStreams">specification repository</a> and the
       <a href="{{ '/community/' | relative_url }}">community chat</a> for pointers to the latest ones.
+    </p>
+    <p>
+      Writing your own? Check it against the
+      <a href="https://github.com/pietercolpaert/ldes-client-conformance-test-suite" property="schema:sameAs"><strong>LDES 1.0 client conformance test suite</strong></a>,
+      a black-box suite that turns the consumer requirements of the LDES 1.0 specification into reproducible HTTP
+      scenarios and machine-readable <a href="https://www.w3.org/TR/EARL10-Schema/">EARL</a> reports. Its baseline
+      already maps 77 of the 100 reviewed LDES 1.0 requirements to 18 executable scenarios, covering unordered and
+      ordered traversal, member extraction, and context information as separately reportable compliance groups.
+      <a href="http://www.pieter.pm/ldes-client-conformance-test-suite/">View the conformance report &rarr;</a>
     </p>
   </section>
 </main>

@@ -466,3 +466,86 @@ header.site-header p.tagline { font-style: italic; font-weight: 400; }
   .article-contents { position: static; padding-bottom: 1rem; border-bottom: 1px solid #dddde8; }
   .article-table th, .article-table td { padding: 0.65rem 0.4rem; }
 }
+
+/* ----------------------------
+   Supported by / implementers
+----------------------------- */
+.org-spotlight {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.5rem 2rem;
+  margin: 1.25rem 0 1.75rem;
+  padding: 1.25rem 1.5rem;
+  background: #fff;
+  border: 1px solid #e3e3f2;
+  border-radius: 4px;
+}
+
+.org-spotlight p {
+  flex: 1 1 22rem;
+  margin: 0;
+  color: #4a4a55;
+}
+
+.org-row,
+.org-grid {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 1.75rem 2.5rem;
+}
+
+.org-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: var(--text);
+  flex: 0 0 auto;
+}
+
+.org-logo:hover .org-logo-label {
+  color: var(--primary);
+  text-decoration: underline;
+}
+
+.org-logo img {
+  height: 2.5rem;
+  width: auto;
+  max-width: 13rem;
+  object-fit: contain;
+}
+
+.org-logo-spotlight img {
+  height: 3.25rem;
+  max-width: 16rem;
+}
+
+.org-row .org-logo img {
+  height: 2.75rem;
+  max-width: 17rem;
+}
+
+.org-logo-dark img {
+  /* Interoperable Europe's logo asset is white-only; give it a dark tile to sit on. */
+  padding: 0.85rem 1.1rem;
+  background: #1b3d5d;
+  border-radius: 4px;
+  box-sizing: content-box;
+}
+
+.org-logo-label {
+  font-size: 0.85rem;
+  text-align: center;
+  max-width: 11rem;
+}
+
+.org-logo-spotlight .org-logo-label {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
