@@ -14,6 +14,8 @@ bundle exec jekyll serve
 
 - `_data/feeds.yml` — a selection of LDES examples (`/examples/`). Set `playground` to the id of a preset in
   `playground/sync.js` (`SYNC_PRESETS`) when the playground offers the feed: its card then links to `/playground/#example=<id>`.
+  `category` (`catalogues`, `heritage` or `environment`) puts the feed in a section of the page; feeds with the same
+  `collection` share one card, described in `_data/feed_collections.yml`.
 - `_data/publications.yml` — the publications list (`/publications/`)
 - `_posts/` — news and blog posts (`/news/`), also exposed as an RSS feed at `/news/feed.xml`
 - `community/`, `tools/` — static pages

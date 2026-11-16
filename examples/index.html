@@ -8,76 +8,65 @@ permalink: /examples/
 {% include header.html %}
 {% include nav.html %}
 
-<main id="main-content" class="container">
-  <section>
+<main id="main-content" class="container examples-page">
+  <header class="examples-header">
     <h1>LDES examples</h1>
     <p class="section-intro">
-      A set of examples of LDES in practice: collection records, catalog updates, marine data, and observations.
-      These are starting points for exploring what you can publish and build with LDES, rather than an exhaustive list.
+      Linked Data Event Streams that are online today. Open one in the <a href="{{ '/playground/' | relative_url }}">playground</a>
+      and your browser replicates it, or give its entry point to any <a href="{{ '/tools/' | relative_url }}">LDES tool</a>.
     </p>
-    <p>
-      The <a href="https://github.com/SEMICeu/LDES-implementation-reports">SEMIC LDES implementation reports</a>
-      explain the design choices behind real deployments. To see an example in action, open it in the
-      <a href="{{ '/playground/' | relative_url }}">playground</a>: your browser replicates it and builds a search and a map view on it.
+    <nav class="examples-jump" aria-label="On this page">
+      <a href="#catalogues">Data catalogues</a>
+      <a href="#heritage">Cultural heritage</a>
+      <a href="#environment">Marine and environmental data</a>
+      <a href="#deployments">Learn from deployments</a>
+      <a href="#research">Research</a>
+    </nav>
+  </header>
+
+  <div typeof="dcat:Catalog" resource="https://ldes.tech/examples/">
+    <meta property="dct:title" content="LDES examples"/>
+    {% include example-feed-section.html category="catalogues" title="Data catalogues" intro="Catalogue publishers share their changes, so that harvesters can update their copies incrementally." %}
+    {% include example-feed-section.html category="heritage" title="Cultural heritage" intro="Museums, archives and aggregators exchange new records, revisions and deletions." %}
+    {% include example-feed-section.html category="environment" title="Marine and environmental data" intro="Gazetteers, species registers, vocabularies, directories and measurements." %}
+  </div>
+  <p class="feed-footnote">
+    Each card says how and when it was checked. Availability and retained history depend on the publisher.
+    Know another LDES? <a href="{{ '/community/' | relative_url }}">Share it with the community</a>.
+  </p>
+
+  <section id="deployments" aria-labelledby="deployments-title">
+    <h2 id="deployments-title">Learn from deployments</h2>
+    <p class="feed-section-intro">
+      The <a href="https://github.com/SEMICeu/LDES-implementation-reports">SEMIC LDES implementation reports</a> explain the design
+      choices behind real deployments.
     </p>
+    <div class="deployment-grid">
+      <article class="deployment-card">
+        <h3>Keep data catalogues in sync</h3>
+        <p>The <a href="https://semiceu.github.io/LDES-implementation-reports/bosa-dcat-ap-feed/">BOSA report</a> follows the Belgian
+          federal catalogue from publication to harvesting; the <a href="https://semiceu.github.io/LDES-implementation-reports/era-dcat-ap-feed/">ERA report</a>
+          shows a pipeline that publishes catalogue changes as static files.</p>
+      </article>
+      <article class="deployment-card">
+        <h3>Share cultural heritage collections</h3>
+        <p>The <a href="https://semiceu.github.io/LDES-implementation-reports/cultural-heritage-feeds/">cultural heritage report</a>
+          describes how LDES and ActivityStreams support the exchange of records, including versioning and retention choices.</p>
+      </article>
+      <article class="deployment-card">
+        <h3>Build a data space with OpenLDES</h3>
+        <p>The <a href="https://openldes.org/">OpenLDES community</a> provides <a href="{{ '/tools/#openldes' | relative_url }}">tools</a>
+          for publishing, consuming and republishing streams. The Flanders Smart Data Space uses them to exchange data across
+          organisations (<a href="#paper-vsds">paper</a>).</p>
+      </article>
+    </div>
   </section>
 
-  <section aria-labelledby="implementation-examples">
-    <h2 id="implementation-examples">How others use LDES</h2>
-    <dl class="implementation-examples">
-      <div>
-        <dt>Keep data catalogs in sync</dt>
-        <dd>Catalog publishers can share changes so harvesters can update their copies incrementally.
-          The <a href="https://semiceu.github.io/LDES-implementation-reports/bosa-dcat-ap-feed/">BOSA report</a>
-          follows the Belgian federal catalog from publication to harvesting;
-          the <a href="https://semiceu.github.io/LDES-implementation-reports/era-dcat-ap-feed/">ERA report</a>
-          shows a pipeline that publishes catalog changes as static files.</dd>
-      </div>
-      <div>
-        <dt>Share cultural heritage collections</dt>
-        <dd>Museums and aggregators need to exchange new records, revisions, and deletions.
-          The <a href="https://semiceu.github.io/LDES-implementation-reports/cultural-heritage-feeds/">cultural heritage report</a>
-          describes how LDES and ActivityStreams support those exchanges, including versioning and retention choices.</dd>
-      </div>
-    </dl>
-  </section>
-
-  <section aria-labelledby="openldes-examples">
-    <h2 id="openldes-examples">Build a data space with OpenLDES</h2>
-    <p>The <a href="https://openldes.org/">OpenLDES community</a> provides tools for publishing, consuming,
-      and republishing streams. The Flanders Smart Data Space is a documented example of using LDES
-      to exchange data across organisations. Explore the <a href="{{ '/tools/#openldes' | relative_url }}">OpenLDES tooling</a>
-      and the architecture described in the paper.</p>
-    {% include paper-citation.html paper="vsds" context="A deployment study of LDES as the shared exchange mechanism in the Flanders Smart Data Space." %}
-  </section>
-
-  <section aria-labelledby="example-feeds">
-    <h2 id="example-feeds">Try an example feed</h2>
-    <p>
-      Choose one of these {{ site.data.feeds | size }} examples and use an <a href="{{ '/tools/' | relative_url }}">LDES tool</a>
-      to inspect or consume it. Each entry says how and when it was checked; the ones that a browser can read open in the
-      <a href="{{ '/playground/' | relative_url }}">playground</a>.
-      Availability and retained history depend on the publisher.
-      <a href="{{ '/community/' | relative_url }}">Share your own example with the community</a>.
-    </p>
-    <ul class="example-list" typeof="dcat:Catalog" resource="https://ldes.tech/examples/">
-      <meta property="dct:title" content="LDES examples"/>
-      {% for feed in site.data.feeds %}
-      <li{% if feed.paper %} id="example-{{ feed.paper }}"{% endif %} property="dcat:dataset" typeof="dcat:Dataset" resource="{{ feed.url }}">
-        <h3 property="dct:title"><a href="{{ feed.url }}">{{ feed.title }}</a></h3>
-        <p class="meta">Publisher: <span property="dct:publisher">{{ feed.publisher }}</span></p>
-        <p property="dct:description">{{ feed.description }}</p>
-        <code class="feed-url" property="dcat:accessURL" resource="{{ feed.url }}">{{ feed.url }}</code>
-        <p class="example-evidence">{{ feed.evidence }}{% if feed.source %} <a href="{{ feed.source }}">Source documentation</a>.{% endif %}</p>
-        {% if feed.playground %}<p><a href="{{ '/playground/' | relative_url }}#example={{ feed.playground }}">Try it in the playground &rarr;</a></p>{% endif %}
-        {% if feed.report %}<p><a href="{{ feed.report }}">Read the implementation report &rarr;</a></p>{% endif %}
-        {% if feed.homepage %}
-        <p><a href="{{ feed.homepage }}" property="foaf:homepage">More about this dataset &rarr;</a></p>
-        {% endif %}
-        {% if feed.paper %}{% include paper-citation.html paper=feed.paper context=feed.paper_context %}{% endif %}
-      </li>
-      {% endfor %}
-    </ul>
+  <section id="research" aria-labelledby="research-title">
+    <h2 id="research-title">Research behind these examples</h2>
+    <div id="paper-marine-regions">{% include paper-citation.html paper="marine-regions" context="How VLIZ publishes the Marine Regions Gazetteer as an LDES so consumers can replicate data and build their own services." %}</div>
+    <div id="paper-coghent">{% include paper-citation.html paper="coghent" context="Publishing the cultural heritage collections of Ghent as Linked Data Event Streams." %}</div>
+    <div id="paper-vsds">{% include paper-citation.html paper="vsds" context="A deployment study of LDES as the shared exchange mechanism in the Flanders Smart Data Space." %}</div>
   </section>
 
 </main>
@@ -104,6 +93,17 @@ permalink: /examples/
     {% endfor %}
   ]
 }
+</script>
+
+<script>
+  // Copy an entry point with its button
+  document.addEventListener('click', async (event) => {
+    const button = event.target.closest('.feed-copy');
+    if (!button) return;
+    try { await navigator.clipboard.writeText(button.dataset.copy); button.textContent = 'Copied'; }
+    catch { button.textContent = 'Select and copy'; }
+    setTimeout(() => { button.textContent = 'Copy'; }, 2000);
+  });
 </script>
 
 {% include footer.html %}

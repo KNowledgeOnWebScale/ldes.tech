@@ -1,0 +1,11 @@
+{% assign feeds = site.data.feeds | where: "category", include.category %}
+{% assign singles = feeds | where_exp: "feed", "feed.collection == nil" %}
+{% assign collections = feeds | where_exp: "feed", "feed.collection != nil" | group_by: "collection" %}
+<section class="feed-section" id="{{ include.category }}" aria-labelledby="{{ include.category }}-title">
+  <h2 id="{{ include.category }}-title">{{ include.title }} <span class="feed-count">{{ feeds.size }}</span></h2>
+  <p class="feed-section-intro">{{ include.intro }}</p>
+  <div class="feed-grid">
+    {% for feed in singles %}{% include example-feed-card.html feed=feed %}{% endfor %}
+    {% for group in collections %}{% include example-feed-collection.html name=group.name feeds=group.items %}{% endfor %}
+  </div>
+</section>

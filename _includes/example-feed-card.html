@@ -1,0 +1,15 @@
+{% assign feed = include.feed %}
+<article class="feed-card" property="dcat:dataset" typeof="dcat:Dataset" resource="{{ feed.url }}">
+  <h3 property="dct:title">{{ feed.title }}</h3>
+  <p class="feed-publisher" property="dct:publisher">{{ feed.publisher }}</p>
+  <p class="feed-description" property="dct:description">{{ feed.description }}</p>
+  {% include example-feed-url.html url=feed.url %}
+  <p class="feed-actions">
+    {% if feed.playground %}<a class="feed-try" href="{{ '/playground/' | relative_url }}#example={{ feed.playground }}">Try it in the playground</a>{% endif %}
+    {% if feed.report %}<a href="{{ feed.report }}">Implementation report</a>{% endif %}
+    {% if feed.homepage %}<a href="{{ feed.homepage }}" property="foaf:homepage">About the dataset</a>{% endif %}
+    {% if feed.source and feed.source != feed.homepage %}<a href="{{ feed.source }}">Documentation</a>{% endif %}
+    {% if feed.paper %}<a href="#paper-{{ feed.paper }}">Paper</a>{% endif %}
+  </p>
+  <p class="feed-evidence">{{ feed.evidence }}</p>
+</article>

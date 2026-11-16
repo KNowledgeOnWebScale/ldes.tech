@@ -1,0 +1,8 @@
+# Feeds in _data/feeds.yml with the same `collection` are shown together, as one card on /examples/.
+- name: Collections of Ghent
+  publisher: City of Ghent (CoGhent)
+  description: >-
+    The collections of the heritage institutions of Ghent, each as a stream of its own, and the agents and
+    thesaurus terms they share.
+  homepage: https://coghent.github.io/
+  paper: coghent

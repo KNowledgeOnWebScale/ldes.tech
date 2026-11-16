@@ -218,6 +218,95 @@ function geometryOf(quads) {
   return null;
 }
 
+// -- the triples of a member, as Turtle (TriG for named graphs) ----------------------------------------------------
+const MAX_SHOWN_QUADS = 400;
+const MAX_LITERAL = 300;
+const LOCAL_NAME = /^[A-Za-z0-9_][A-Za-z0-9_\-.]*$/;
+const namespaceOf = (iri) => iri.slice(0, Math.max(iri.lastIndexOf('#'), iri.lastIndexOf('/')) + 1);
+
+/**
+ * The prefixes for a member: the known ones, and one for every other namespace that occurs more than once in it,
+ * named after the last segment of its path (http://marineregions.org/ns/placetypes# becomes placetypes:).
+ */
+function prefixesFor(quads) {
+  const counts = new Map();
+  const count = (term) => { if (term?.termType === 'NamedNode') { const ns = namespaceOf(term.value); counts.set(ns, (counts.get(ns) ?? 0) + 1); } };
+  for (const q of quads) { count(q.subject); count(q.predicate); count(q.object); count(q.graph); if (q.object.termType === 'Literal') count(q.object.datatype); }
+  const prefixes = new Map(Object.entries(PREFIXES));
+  const known = new Set(prefixes.values());
+  for (const [ns, n] of [...counts].sort((a, b) => b[1] - a[1])) {
+    if (n < 2 || known.has(ns) || !/^https?:\/\/[^/]+\/./.test(ns)) continue;
+    const base = (ns.replace(/[#/]+$/, '').split('/').pop() || 'ns').toLowerCase().replace(/[^a-z0-9]/g, '').replace(/^[0-9]+/, '').slice(0, 16) || 'ns';
+    let name = base; let suffix = 2;
+    while (prefixes.has(name)) name = `${base}${suffix++}`;
+    prefixes.set(name, ns); known.add(ns);
+  }
+  return [...prefixes].sort((a, b) => b[1].length - a[1].length);
+}
+
+function termTurtle(term, prefixes, used, notes) {
+  switch (term.termType) {
+    case 'NamedNode': {
+      for (const [prefix, ns] of prefixes) {
+        const local = term.value.slice(ns.length);
+        if (term.value.startsWith(ns) && LOCAL_NAME.test(local) && !local.endsWith('.')) { used.set(prefix, ns); return `${prefix}:${local}`; }
+      }
+      return `<${term.value}>`;
+    }
+    case 'BlankNode': return `_:${term.value}`;
+    case 'Literal': {
+      let value = term.value;
+      if (value.length > MAX_LITERAL) { notes.push(`a literal of ${value.length.toLocaleString('en')} characters is shortened`); value = `${value.slice(0, MAX_LITERAL)}…`; }
+      const text = `"${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r')}"`;
+      if (term.language) return `${text}@${term.language}`;
+      const datatype = term.datatype?.value;
+      return !datatype || datatype === NS.xsd + 'string' ? text : `${text}^^${termTurtle(term.datatype, prefixes, used, notes)}`;
+    }
+    default: return '';
+  }
+}
+
+/** Turtle of the quads, grouped by graph and subject, with the member as the first subject. */
+export function toTurtle(quads, focus) {
+  const used = new Map(); const notes = [];
+  const shown = quads.slice(0, MAX_SHOWN_QUADS);
+  const prefixes = prefixesFor(shown);
+  const turtle = (term) => termTurtle(term, prefixes, used, notes);
+  const graphs = new Map();
+  for (const q of shown) {
+    const graph = q.graph.termType === 'DefaultGraph' ? '' : turtle(q.graph);
+    if (!graphs.has(graph)) graphs.set(graph, new Map());
+    const subjects = graphs.get(graph);
+    const subject = turtle(q.subject);
+    if (!subjects.has(subject)) subjects.set(subject, { first: q.subject.value === focus, predicates: new Map() });
+    const predicates = subjects.get(subject).predicates;
+    const predicate = q.predicate.value === NS.rdf + 'type' ? 'a' : turtle(q.predicate);
+    if (!predicates.has(predicate)) predicates.set(predicate, []);
+    predicates.get(predicate).push(turtle(q.object));
+  }
+  const blocks = [];
+  for (const [graph, subjects] of [...graphs].sort(([a], [b]) => (a === '' ? -1 : b === '' ? 1 : 0))) {
+    const indent = graph ? '    ' : '';
+    const ordered = [...subjects].sort(([, a], [, b]) => Number(b.first) - Number(a.first));
+    const text = ordered.map(([subject, { predicates }]) => `${indent}${subject} ${[...predicates]
+      .map(([predicate, objects]) => {
+        // more than two values, or a long line: one value per line
+        const oneLine = objects.join(' , ');
+        return objects.length > 2 || oneLine.length > 90
+          ? `${predicate}\n${indent}        ${objects.join(` ,\n${indent}        `)}`
+          : `${predicate} ${oneLine}`;
+      })
+      .join(` ;\n${indent}    `)} .`).join('\n\n');
+    blocks.push(graph ? `${graph} {\n${text}\n}` : text);
+  }
+  const header = [...used].sort(([a], [b]) => a.localeCompare(b)).map(([prefix, ns]) => `@prefix ${prefix}: <${ns}> .`).join('\n');
+  const tail = [
+    quads.length > shown.length ? `# … and ${(quads.length - shown.length).toLocaleString('en')} more triples` : '',
+    notes.length ? `# ${notes.length === 1 ? notes[0] : `${notes.length} long literals are shortened`} here` : '',
+  ].filter(Boolean).join('\n');
+  return [header, blocks.join('\n\n'), tail].filter(Boolean).join('\n\n');
+}
+
 // -- reading an entity out of a member ----------------------------------------------------------------------------
 const timestampText = (value) => (value == null ? '' : value instanceof Date ? value.toISOString() : String(value));
 
@@ -246,7 +335,10 @@ function toEntity(member) {
   return {
     key: itemId,
     deleted,
-    entity: { id: itemId, label: label || prettyIri(itemId), hasLabel: Boolean(label), ...geometryOf(member.quads), ts: timestampText(member.timestamp) },
+    entity: {
+      id: itemId, member: memberId, label: label || prettyIri(itemId), hasLabel: Boolean(label), ...geometryOf(member.quads),
+      ts: timestampText(member.timestamp), size: member.quads.length, turtle: toTurtle(member.quads, memberId),
+    },
   };
 }
 
@@ -341,6 +433,7 @@ export function createSyncChapter(root, { onChange }) {
   const resultCount = h('p', { class: 'pg-note' });
   const mapBox = h('div', { class: 'pg-map', id: 'sync-map', 'aria-label': 'Map of the replicated entities with a geometry' });
   const mapNote = h('p', { class: 'pg-note' });
+  const memberPanel = h('section', { class: 'pg-member', hidden: true, 'aria-live': 'polite', 'aria-label': 'The selected member' });
   const log = h('ol', { class: 'pg-log', 'aria-live': 'off' });
 
   const statCell = (label, node) => h('div', { class: 'pg-stat' }, node, h('span', {}, label));
@@ -370,6 +463,7 @@ export function createSyncChapter(root, { onChange }) {
       h('div', {}, h('h3', {}, 'Your view: substring search'), searchInput, resultCount, results),
       h('div', {}, h('h3', {}, 'Your view: map'), mapBox, mapNote),
     ),
+    memberPanel,
     h('details', { class: 'pg-details' }, h('summary', {}, 'Replication log'), log),
   );
 
@@ -414,6 +508,7 @@ export function createSyncChapter(root, { onChange }) {
   let resumeReading = null; // set while the sync waits at its limit: call it with true to read on, with false to stop
   let map = null; let layer = null; let leafletReady = null;
   let fittedFor = null;
+  let selectedId = null; let shownEntity = null;
   const markers = new Map();
 
   const ensureMap = async () => {
@@ -441,10 +536,16 @@ export function createSyncChapter(root, { onChange }) {
     resultCount.textContent = `${matching.length.toLocaleString('en')} of ${all.length.toLocaleString('en')} entities${query ? ` contain “${rawQuery}”` : ''}. Searched in your browser: no request left it.`;
     results.textContent = '';
     for (const entity of matching.slice(0, 80)) {
-      const name = entity.lat != null
-        ? h('button', { type: 'button', class: 'pg-link', title: entity.id, onclick: () => focusOn(entity) }, entity.label)
-        : h('span', { title: entity.id }, entity.label);
-      results.append(h('li', {}, name, h('a', { href: entity.id, class: 'pg-ext', target: '_blank', rel: 'noopener', 'aria-label': `Open ${entity.label}` }, '↗')));
+      const selected = entity.id === selectedId;
+      results.append(h('li', { class: selected ? 'selected' : null },
+        h('button', { type: 'button', class: 'pg-link', title: `Show the triples of ${entity.id}`, 'aria-pressed': String(selected), onclick: () => select(entity, { fly: true }) }, entity.label),
+        entity.lat != null && h('span', { class: 'pg-pin', title: 'On the map', 'aria-label': 'on the map' }, '●')));
+    }
+    // The selected entity can have been updated by a newer member, or removed
+    if (selectedId) {
+      const current = view.get(selectedId);
+      if (!current) closeMember();
+      else if (current !== shownEntity) showMember(current);
     }
     if (matching.length > 80) results.append(h('li', { class: 'pg-note' }, `… and ${(matching.length - 80).toLocaleString('en')} more`));
 
@@ -459,7 +560,8 @@ export function createSyncChapter(root, { onChange }) {
     layer.clearLayers(); markers.clear();
     for (const entity of placed.slice(0, MAX_MARKERS)) {
       const marker = window.L.circleMarker([entity.lat, entity.lon], { radius: 5, color: '#5252cf', weight: 1, fillColor: '#7950e6', fillOpacity: 0.7 })
-        .bindPopup(`<strong>${escapeHtml(entity.label)}</strong><br><a href="${escapeHtml(entity.id)}" target="_blank" rel="noopener">${escapeHtml(prettyIri(entity.id))}</a>`);
+        .bindPopup(`<strong>${escapeHtml(entity.label)}</strong>`)
+        .on('click', () => select(entity));
       marker.addTo(layer); markers.set(entity.id, marker);
     }
     map.invalidateSize();
@@ -473,6 +575,46 @@ export function createSyncChapter(root, { onChange }) {
   function focusOn(entity) {
     const marker = markers.get(entity.id);
     if (marker && map) { map.flyTo(marker.getLatLng(), Math.max(map.getZoom(), 8)); marker.openPopup(); }
+  }
+
+  // the selected entity: the triples of the member that was read last for it ------------------------------------------
+  function select(entity, { fly = false } = {}) {
+    selectedId = entity.id;
+    showMember(entity);
+    if (fly) focusOn(entity);
+    for (const button of results.querySelectorAll('button[aria-pressed]')) {
+      const on = button.title === `Show the triples of ${entity.id}`;
+      button.setAttribute('aria-pressed', String(on));
+      button.closest('li').classList.toggle('selected', on);
+    }
+    memberPanel.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
+
+  function showMember(entity) {
+    shownEntity = entity;
+    const row = (label, ...value) => [h('dt', {}, label), h('dd', {}, ...value)];
+    memberPanel.textContent = '';
+    memberPanel.append(
+      h('div', { class: 'pg-member-head' },
+        h('h3', {}, entity.label),
+        h('button', { type: 'button', class: 'pg-btn', onclick: closeMember }, 'Close')),
+      h('dl', {},
+        row('Entity', h('code', {}, entity.id)),
+        entity.member && entity.member !== entity.id && row('Latest member', h('code', {}, entity.member)),
+        entity.ts && row('Timestamp', entity.ts),
+        entity.size != null && row('Triples', entity.size.toLocaleString('en'))),
+      entity.turtle
+        ? h('pre', { class: 'pg-turtle', tabindex: '0', 'aria-label': 'The triples of the member, in Turtle' }, h('code', {}, entity.turtle))
+        : h('p', { class: 'pg-note' }, 'This entity was restored from a view that an earlier version of this page saved, without its triples. Forget the saved view and sync again to see them.'),
+    );
+    memberPanel.hidden = false;
+  }
+
+  function closeMember() {
+    selectedId = null; shownEntity = null;
+    memberPanel.hidden = true; memberPanel.textContent = '';
+    for (const li of results.querySelectorAll('li.selected')) li.classList.remove('selected');
+    for (const button of results.querySelectorAll('button[aria-pressed="true"]')) button.setAttribute('aria-pressed', 'false');
   }
 
   const addLog = (text) => {
@@ -516,6 +658,7 @@ export function createSyncChapter(root, { onChange }) {
     startButton.disabled = true; stopButton.disabled = false; moreButton.disabled = true;
     counters = { members: 0, pages: 0, fresh: 0, changed: 0, removed: 0 };
     view = new Map(); log.textContent = ''; about.hidden = true; fittedFor = null;
+    closeMember();
 
     let restored = 0;
     let after = cfg.days ? new Date(Date.now() - cfg.days * 864e5) : undefined;
@@ -629,6 +772,7 @@ export function createSyncChapter(root, { onChange }) {
     await forgetState(stateName(urlInput.value.trim()));
     view = new Map(); counters = { members: 0, pages: 0, fresh: 0, changed: 0, removed: 0 };
     about.hidden = true;
+    closeMember();
     render(); setStatus('Saved view and client bookmark removed: the next sync replicates from scratch.');
   }
 

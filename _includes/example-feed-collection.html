@@ -1,0 +1,28 @@
+{% assign collection = site.data.feed_collections | where: "name", include.name | first %}
+{% assign feeds = include.feeds %}
+<article class="feed-card feed-collection">
+  <h3>{{ include.name }}</h3>
+  {% if collection.publisher %}<p class="feed-publisher">{{ collection.publisher }}</p>{% endif %}
+  {% if collection.description %}<p class="feed-description">{{ collection.description }} {{ feeds.size }} streams:</p>{% endif %}
+  <ul class="feed-rows">
+    {% for feed in feeds %}
+    {% assign prefix = include.name | append: ": " %}
+    <li property="dcat:dataset" typeof="dcat:Dataset" resource="{{ feed.url }}">
+      <meta property="dct:title" content="{{ feed.title }}"/>
+      <meta property="dct:publisher" content="{{ feed.publisher }}"/>
+      <p class="feed-row-head"><strong>{{ feed.title | remove_first: prefix }}</strong> <span property="dct:description">{{ feed.description }}</span></p>
+      {% include example-feed-url.html url=feed.url %}
+      <p class="feed-actions">
+        {% if feed.playground %}<a class="feed-try" href="{{ '/playground/' | relative_url }}#example={{ feed.playground }}">Try it in the playground</a>{% endif %}
+        {% if feed.homepage %}<a href="{{ feed.homepage }}" property="foaf:homepage">About the dataset</a>{% endif %}
+        {% if feed.source and feed.source != feed.homepage %}<a href="{{ feed.source }}">Documentation</a>{% endif %}
+      </p>
+    </li>
+    {% endfor %}
+  </ul>
+  <p class="feed-actions">
+    {% if collection.homepage %}<a href="{{ collection.homepage }}">About {{ include.name }}</a>{% endif %}
+    {% if collection.paper %}<a href="#paper-{{ collection.paper }}">Paper</a>{% endif %}
+  </p>
+  <p class="feed-evidence">{{ feeds.first.evidence }}</p>
+</article>
