@@ -1,7 +1,7 @@
 ---
 title: Playground
 description: >-
-  Try LDES in your browser with ldes-client 0.6.0: replicate an LDES, build your own view on it,
+  Try LDES in your browser with ldes-client 0.6.1: replicate an LDES, build your own view on it,
   and keep that view in sync.
 permalink: /playground/
 ---
@@ -20,7 +20,7 @@ permalink: /playground/
       A dump is outdated the day after you download it, and an API only answers the questions its publisher foresaw.
       With an LDES, one publisher shares its data and its changes once, and everyone else replicates them to build
       <em>their own</em> view and keep it up to date. Here, your browser does that with
-      <a href="https://www.npmjs.com/package/ldes-client"><code>ldes-client</code> <span id="pg-version">0.6.0</span></a>:
+      <a href="https://www.npmjs.com/package/ldes-client"><code>ldes-client</code> <span id="pg-version">0.6.1</span></a>:
       it fills a substring search and a map while the members stream in. The sync pauses after 1&nbsp;000 members:
       <strong>Fetch more members</strong> reads on. Press <strong>Sync</strong> again later: your browser remembers where it
       stopped, and only asks for what changed since.
@@ -43,7 +43,7 @@ permalink: /playground/
   <section class="pg-colophon">
     <h2>How this page is built</h2>
     <p>
-      The page bundles <a href="https://github.com/rdf-connect/ldes-client">ldes-client</a> <span id="pg-version-2">0.6.0</span>
+      The page bundles <a href="https://github.com/rdf-connect/ldes-client">ldes-client</a> <span id="pg-version-2">0.6.1</span>
       for the browser (<a href="https://github.com/KNowledgeOnWebScale/ldes.tech/tree/main/playground-src">build script</a>).
       Entities get their name from schema:name, dct:title, dc:title, skos:prefLabel, rdfs:label, foaf:name and similar
       properties, and a place on the map from any WKT or GML literal or latitude/longitude pair. The map uses

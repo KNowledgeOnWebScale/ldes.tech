@@ -7,7 +7,7 @@
     "build": "node build.mjs"
   },
   "dependencies": {
-    "ldes-client": "0.6.0"
+    "ldes-client": "0.6.1"
   },
   "devDependencies": {
     "buffer": "^6.0.3",
