@@ -1,0 +1,14 @@
+{
+  "name": "ldes-tech-scripts",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Generators for static files of ldes.tech (not published on the site)",
+  "scripts": {
+    "riverbench": "node generate-riverbench.mjs"
+  },
+  "dependencies": {
+    "n3": "^1.26.0",
+    "rdfjs-jelly": "^0.2.0"
+  }
+}

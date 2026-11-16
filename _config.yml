@@ -31,3 +31,5 @@ exclude:
   - REVIEW.md
   - coverage/
   - vendor/
+  - playground-src/
+  - scripts/

@@ -1,0 +1,19 @@
+{
+  "name": "ldes-tech-playground",
+  "private": true,
+  "description": "Build of the browser bundles used by https://ldes.tech/playground/",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "ldes-client": "0.6.0"
+  },
+  "devDependencies": {
+    "buffer": "^6.0.3",
+    "esbuild": "^0.28.0",
+    "events": "^3.3.0",
+    "process": "^0.11.10",
+    "readable-stream": "^4.8.0"
+  }
+}

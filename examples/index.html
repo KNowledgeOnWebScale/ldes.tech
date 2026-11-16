@@ -17,8 +17,8 @@ permalink: /examples/
     </p>
     <p>
       The <a href="https://github.com/SEMICeu/LDES-implementation-reports">SEMIC LDES implementation reports</a>
-      explain the design choices behind real deployments. For a closer look at harvested data, visit the
-      <a href="https://ldes-explorer-ec66be.pages.ilabt.imec.be/">LDES Explorer</a>.
+      explain the design choices behind real deployments. To see an example in action, open it in the
+      <a href="{{ '/playground/' | relative_url }}">playground</a>: your browser replicates it and builds a search and a map view on it.
     </p>
   </section>
 
@@ -55,7 +55,8 @@ permalink: /examples/
     <h2 id="example-feeds">Try an example feed</h2>
     <p>
       Choose one of these {{ site.data.feeds | size }} examples and use an <a href="{{ '/tools/' | relative_url }}">LDES tool</a>
-      to inspect or consume it. Each entry links to documentation or a dated explorer observation.
+      to inspect or consume it. Each entry says how and when it was checked; the ones that a browser can read open in the
+      <a href="{{ '/playground/' | relative_url }}">playground</a>.
       Availability and retained history depend on the publisher.
       <a href="{{ '/community/' | relative_url }}">Share your own example with the community</a>.
     </p>
@@ -67,7 +68,8 @@ permalink: /examples/
         <p class="meta">Publisher: <span property="dct:publisher">{{ feed.publisher }}</span></p>
         <p property="dct:description">{{ feed.description }}</p>
         <code class="feed-url" property="dcat:accessURL" resource="{{ feed.url }}">{{ feed.url }}</code>
-        <p class="example-evidence">{{ feed.evidence }} <a href="{{ feed.source }}">{% if feed.explorer %}Explore harvested data{% else %}Source documentation{% endif %}</a>.</p>
+        <p class="example-evidence">{{ feed.evidence }}{% if feed.source %} <a href="{{ feed.source }}">Source documentation</a>.{% endif %}</p>
+        {% if feed.playground %}<p><a href="{{ '/playground/' | relative_url }}#example={{ feed.playground }}">Try it in the playground &rarr;</a></p>{% endif %}
         {% if feed.report %}<p><a href="{{ feed.report }}">Read the implementation report &rarr;</a></p>{% endif %}
         {% if feed.homepage %}
         <p><a href="{{ feed.homepage }}" property="foaf:homepage">More about this dataset &rarr;</a></p>

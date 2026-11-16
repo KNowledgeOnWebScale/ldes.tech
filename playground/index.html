@@ -1,0 +1,58 @@
+---
+title: Playground
+description: >-
+  Try LDES in your browser with ldes-client 0.6.0: replicate an LDES, build your own view on it,
+  and keep that view in sync.
+permalink: /playground/
+---
+{% include header.html %}
+{% include nav.html %}
+<link rel="stylesheet" href="{{ '/playground/playground.css' | relative_url }}">
+
+<main id="main-content" class="container pg">
+  <h1>Playground</h1>
+  <noscript><p class="pg-status error">This page needs JavaScript.</p></noscript>
+  <div id="sync-app"></div>
+
+  <section class="pg-explain" aria-labelledby="pg-what">
+    <h2 id="pg-what">What happens here</h2>
+    <p>
+      A dump is outdated the day after you download it, and an API only answers the questions its publisher foresaw.
+      With an LDES, one publisher shares its data and its changes once, and everyone else replicates them to build
+      <em>their own</em> view and keep it up to date. Here, your browser does that with
+      <a href="https://www.npmjs.com/package/ldes-client"><code>ldes-client</code> <span id="pg-version">0.6.0</span></a>:
+      it fills a substring search and a map while the members stream in. The sync pauses after 1&nbsp;000 members:
+      <strong>Fetch more members</strong> reads on. Press <strong>Sync</strong> again later: your browser remembers where it
+      stopped, and only asks for what changed since.
+    </p>
+    <p class="pg-note">
+      This playground uses public data only. Requests go directly from your browser to each publisher,
+      so a publisher has to allow cross-origin reads (CORS).
+    </p>
+    <p class="pg-buttons">
+      <button type="button" class="pg-btn" id="pg-share">Share this setup</button>
+      <span id="pg-share-status" class="pg-note" role="status"></span>
+    </p>
+    <p class="pg-note">
+      Read more: <a href="{{ site.baseurl }}{% post_url 2024-08-06-scalability %}">Growing an LDES: more data, faster updates, more consumers</a>
+      and <a href="{{ site.baseurl }}{% post_url 2021-09-03-escaping-false-dichotomy %}">Escaping the false dichotomy of API vs. data dump</a>.
+    </p>
+    {% include paper-citation.html paper="marine-regions" context="How VLIZ publishes the Marine Regions Gazetteer as an LDES so consumers can replicate data and build their own services." %}
+  </section>
+
+  <section class="pg-colophon">
+    <h2>How this page is built</h2>
+    <p>
+      The page bundles <a href="https://github.com/rdf-connect/ldes-client">ldes-client</a> <span id="pg-version-2">0.6.0</span>
+      for the browser (<a href="https://github.com/KNowledgeOnWebScale/ldes.tech/tree/main/playground-src">build script</a>).
+      Entities get their name from schema:name, dct:title, dc:title, skos:prefLabel, rdfs:label, foaf:name and similar
+      properties, and a place on the map from any WKT or GML literal or latitude/longitude pair. The map uses
+      <a href="https://leafletjs.com/">Leaflet</a> and OpenStreetMap tiles. Sharing works like in the
+      <a href="https://github.com/pietercolpaert/rdfjs-inference-engine">inference engine playground</a>: the
+      configuration is stored, compressed, in the part of the URL after the <code>#</code>, which never leaves your browser.
+    </p>
+  </section>
+</main>
+
+<script type="module" src="{{ '/playground/app.js' | relative_url }}"></script>
+{% include footer.html %}
