@@ -1,8 +1,5 @@
-// Shared helpers of the LDES playground: the ldes-client bundle, a browser-friendly fetch,
-// shareable URL state and small DOM utilities.
-import * as L from './ldes-tech.min.js';
-
-export { L };
+// Shared helpers of the LDES playground: shareable URL state, small DOM utilities and RDF namespaces.
+// Nothing here runs DOM code when it is imported: the replication worker imports it too (through members.js).
 export const $ = (selector, root = document) => root.querySelector(selector);
 
 export function h(tag, attrs = {}, ...children) {
@@ -23,29 +20,20 @@ export function h(tag, attrs = {}, ...children) {
 export const escapeHtml = (text) =>
   String(text).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
+/** Runs fn at most once every ms, and once more after the last call: it keeps up with a stream that never pauses. */
+export function throttle(fn, ms) {
+  let timer = null; let last = 0;
+  return (...args) => {
+    if (timer) return;
+    timer = setTimeout(() => { timer = null; last = performance.now(); fn(...args); }, Math.max(0, ms - (performance.now() - last)));
+  };
+}
+
 export function debounce(fn, ms) {
   let timer;
   return (...args) => {
     clearTimeout(timer);
     timer = setTimeout(() => fn(...args), ms);
-  };
-}
-
-// ---------------------------------------------------------------------------------------------------------------
-// HTTP: ldes-client advertises a long Accept header (and may send If-None-Match). Browsers treat both as
-// non-simple requests and send a CORS preflight, which many data providers do not answer. A short Accept
-// header keeps requests "simple", so any server that sends Access-Control-Allow-Origin works.
-// ---------------------------------------------------------------------------------------------------------------
-const SHORT_ACCEPT = 'application/trig, text/turtle;q=0.9, application/ld+json;q=0.8';
-
-export function browserFetch() {
-  return async (input, init = {}) => {
-    const request = new Request(input, init);
-    const headers = new Headers(request.headers);
-    headers.set('Accept', SHORT_ACCEPT);
-    headers.delete('If-None-Match');
-    headers.delete('If-Modified-Since');
-    return fetch(new Request(request, { headers }));
   };
 }
 

@@ -1,17 +1,18 @@
 // The LDES playground: keep a view in sync, with the whole setup in a shareable URL.
-import { L, $, debounce, decodeState, readHash, writeHash } from './common.js';
+import { $, debounce, decodeState, readHash, writeHash } from './common.js';
 import { createSyncChapter } from './sync.js';
 
 let restoring = false;
 
-for (const id of ['pg-version', 'pg-version-2']) { const el = document.getElementById(id); if (el) el.textContent = L.ldesClientVersion; }
 
 // The hash keeps the shape { c: 'sync', s: state } of the links that were shared when the page had more demos.
 const save = debounce(async () => {
   if (!restoring) await writeHash({ c: 'sync', s: sync.collect() });
 }, 400);
 
-const sync = createSyncChapter($('#sync-app'), { onChange: save });
+// The replication worker reports the version of ldes-client that it bundles
+const showVersion = (version) => { for (const id of ['pg-version', 'pg-version-2']) { const el = document.getElementById(id); if (el) el.textContent = version; } };
+const sync = createSyncChapter($('#sync-app'), { onChange: save, onVersion: showVersion });
 
 $('#pg-share').addEventListener('click', async () => {
   await writeHash({ c: 'sync', s: sync.collect() });

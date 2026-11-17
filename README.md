@@ -60,7 +60,9 @@ identifier per message, ascending timestamps where an `ldes:timestampPath` is de
 `/playground/` runs [ldes-client](https://github.com/rdf-connect/ldes-client) (pinned in `playground-src/package.json`) in the
 browser to keep a view in sync: it replicates an LDES, builds a local search and map view on it while the members stream
 in, pauses after 1 000 members (“Fetch more members” reads on from the same stream) and continues from its bookmark on the
-next sync. The examples are `SYNC_PRESETS` in `playground/sync.js`; every one must be readable from a browser (CORS). The
+next sync. ldes-client runs in a module Web Worker (`playground/replicator.js`), so that parsing a large page does not
+freeze the page; `playground/members.js` turns members into what the page shows (names, geometry, Turtle) and runs in
+the worker too. The examples are `SYNC_PRESETS` in `playground/sync.js`; every one must be readable from a browser (CORS). The
 whole configuration is stored, compressed, in the URL hash, so a setup can be shared; `#example=<preset>` opens an example.
 
 The browser bundle `playground/ldes-tech.min.js` is committed. To rebuild it, for example after bumping ldes-client:

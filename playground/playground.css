@@ -76,3 +76,13 @@
 .pg-member dd { margin: 0; overflow-wrap: anywhere; }
 .pg-turtle { margin: 0; max-height: 480px; overflow: auto; background: #f7f7fc; border: 1px solid #e3e3ee; border-radius: 8px; padding: 0.8rem 1rem; font-size: 0.78rem; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; }
 .pg-turtle:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* busy: a spinner in the status line while requests are on their way or the client is working */
+.pg-status { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
+.pg-status-text { flex: 1 1 20rem; min-width: 0; }
+.pg-spinner { display: none; width: 1rem; height: 1rem; flex: none; border: 2px solid rgba(var(--primary-rgb), 0.25); border-top-color: var(--primary); border-radius: 50%; animation: pg-spin 0.8s linear infinite; }
+.pg-status.busy .pg-spinner { display: inline-block; }
+.pg-requests { font-size: 0.8rem; color: #5a5a66; white-space: nowrap; }
+.pg-status:not(.busy) .pg-requests { display: none; }
+@keyframes pg-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .pg-spinner { animation-duration: 2.4s; } }

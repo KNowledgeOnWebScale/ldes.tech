@@ -1,7 +1,8 @@
 // Keep a view in sync.
 // ldes-client replicates an LDES in the browser. The page keeps its own view (a substring search and a map) up to date
 // from it while the members stream in, and remembers where it stopped, so the next visit only fetches what changed.
-import { L, NS, h, browserFetch, debounce, escapeHtml, formatDuration, loadScript, loadStyle } from './common.js';
+import { h, debounce, escapeHtml, formatDuration, loadScript, loadStyle, throttle } from './common.js';
+import { normalize } from './members.js';
 
 const LEAFLET = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet';
 const DEFAULT_LIMIT = 1000;
@@ -95,322 +96,8 @@ function deleteIndexedDb(name) {
   })));
 }
 
-// -- names and labels -----------------------------------------------------------------------------------------------
-const PREFIXES = {
-  ...NS,
-  dc: 'http://purl.org/dc/elements/1.1/',
-  sh: 'http://www.w3.org/ns/shacl#',
-  foaf: 'http://xmlns.com/foaf/0.1/',
-  vcard: 'http://www.w3.org/2006/vcard/ns#',
-  wgs84: 'http://www.w3.org/2003/01/geo/wgs84_pos#',
-  gml: 'http://www.opengis.net/ont/gml#',
-  sosa: 'http://www.w3.org/ns/sosa/',
-  cidoc: 'http://www.cidoc-crm.org/cidoc-crm/',
-  edm: 'http://www.europeana.eu/schemas/edm/',
-  osm: 'https://www.openstreetmap.org/',
-  osmkey: 'https://www.openstreetmap.org/wiki/Key:',
-  osmmeta: 'https://www.openstreetmap.org/meta/',
-};
-const PREFIX_ENTRIES = Object.entries(PREFIXES).sort((a, b) => b[1].length - a[1].length);
-
-/** A readable form of an IRI: the last path segments or the fragment, decoded. */
-export function prettyIri(iri) {
-  try {
-    const url = new URL(iri);
-    const decode = (text) => { try { return decodeURIComponent(text); } catch { return text; } };
-    if (url.hash.length > 1) return decode(url.hash.slice(1));
-    const host = url.hostname.replace(/^www\./, '');
-    const segments = url.pathname.split('/').filter(Boolean).map(decode);
-    const tail = segments.slice(-2).join('/');
-    return segments.length > 2 ? `${host} › …/${tail}` : `${host}${tail ? `/${tail}` : ''}`;
-  } catch {
-    return iri;
-  }
-}
-
-/** A prefixed name when the namespace is known, else a readable IRI. */
-function compact(iri) {
-  for (const [prefix, ns] of PREFIX_ENTRIES) if (iri.startsWith(ns) && iri.length > ns.length) return `${prefix}:${iri.slice(ns.length)}`;
-  return prettyIri(iri);
-}
-
-// The predicates that give an entity its name, most specific first.
-const LABEL_PREDICATES = [
-  'https://schema.org/name', 'http://schema.org/name', NS.dct + 'title', PREFIXES.dc + 'title', NS.skos + 'prefLabel',
-  NS.rdfs + 'label', PREFIXES.foaf + 'name', NS.as + 'name', PREFIXES.vcard + 'fn', PREFIXES.osmkey + 'name',
-  PREFIXES.cidoc + 'P102_has_title', NS.skos + 'altLabel', NS.dct + 'alternative',
-];
-const LANGUAGES = [...new Set([...(navigator.languages ?? []), 'en'].map((tag) => tag.toLowerCase().split('-')[0]))];
-const languageRank = (language) => {
-  if (!language) return LANGUAGES.length + 1;
-  const index = LANGUAGES.indexOf(language.toLowerCase().split('-')[0]);
-  return index < 0 ? 0 : LANGUAGES.length + 1 - index + 1;
-};
-
-// -- geometry: every WKT or GML literal and every latitude/longitude pair ----------------------------------------------
-const WKT_DATATYPES = new Set([NS.geo + 'wktLiteral', 'http://www.openlinksw.com/schemas/virtrdf#Geometry']);
-const GML_DATATYPES = new Set([NS.geo + 'gmlLiteral']);
-const WKT_TEXT = /^\s*(<[^>]+>\s*)?(POINT|LINESTRING|POLYGON|MULTIPOINT|MULTILINESTRING|MULTIPOLYGON|GEOMETRYCOLLECTION|TRIANGLE|TIN|POLYHEDRALSURFACE)\b/i;
-const GML_TEXT = /^\s*<([\w-]+:)?(Point|LineString|Polygon|Envelope|MultiPoint|MultiCurve|MultiSurface|MultiPolygon|Surface|Curve)\b/;
-const LATITUDE = /^(lat|latitude)$/i;
-const LONGITUDE = /^(long|lon|lng|longitude)$/i;
-const NUMBERS = /[-+]?\d+(?:\.\d+)?(?:e[-+]?\d+)?/gi;
-// CRSs with latitude first: EPSG:4326 as an IRI, URN or code. CRS84 (the WKT default) has longitude first.
-const LAT_FIRST_CRS = /EPSG(\/0\/|::?|:)4326\b/i;
-
-/** The centre of the bounding box of [x, y] points, as latitude and longitude, or null when it is not on Earth. */
-function centre(numbers, latFirst) {
-  const points = [];
-  for (let i = 0; i + 1 < numbers.length; i += 2) points.push(latFirst ? [numbers[i + 1], numbers[i]] : [numbers[i], numbers[i + 1]]);
-  if (!points.length) return null;
-  const xs = points.map((p) => p[0]); const ys = points.map((p) => p[1]);
-  const lon = (Math.min(...xs) + Math.max(...xs)) / 2;
-  const lat = (Math.min(...ys) + Math.max(...ys)) / 2;
-  return Number.isFinite(lat) && Number.isFinite(lon) && Math.abs(lat) <= 90 && Math.abs(lon) <= 180 ? { lat, lon } : null;
-}
-
-function parseWkt(text) {
-  const crs = /^\s*<([^>]+)>/.exec(text)?.[1] ?? '';
-  const body = text.replace(/^\s*<[^>]*>\s*/, '');
-  // Z and M coordinates are not used: only take the first two numbers of every coordinate tuple.
-  const dimensions = /\b(ZM)\b/i.test(body) ? 4 : /\b(Z|M)\s*\(/i.test(body) ? 3 : 2;
-  const numbers = [];
-  for (const tuple of body.split(/[,()]/)) {
-    const values = (tuple.match(NUMBERS) || []).map(Number);
-    for (let i = 0; i + 1 < values.length; i += dimensions) numbers.push(values[i], values[i + 1]);
-  }
-  return centre(numbers, LAT_FIRST_CRS.test(crs));
-}
-
-function parseGml(text) {
-  const latFirst = LAT_FIRST_CRS.test(/srsName="([^"]*)"/.exec(text)?.[1] ?? '');
-  const numbers = [];
-  for (const [, content] of text.matchAll(/<(?:[\w-]+:)?(?:pos|posList|lowerCorner|upperCorner)\b[^>]*>([^<]*)</g)) {
-    numbers.push(...(content.match(NUMBERS) || []).map(Number));
-  }
-  // gml:coordinates: "x,y x,y", in the axis order of the CRS
-  for (const [, content] of text.matchAll(/<(?:[\w-]+:)?coordinates\b[^>]*>([^<]*)</g)) {
-    for (const tuple of content.trim().split(/\s+/)) {
-      const [a, b] = tuple.split(',').map(Number);
-      if (Number.isFinite(a) && Number.isFinite(b)) numbers.push(a, b);
-    }
-  }
-  return centre(numbers, latFirst);
-}
-
-function geometryOf(quads) {
-  const latitudes = new Map(); const longitudes = new Map();
-  for (const q of quads) {
-    if (q.object.termType !== 'Literal') continue;
-    const { value, datatype } = q.object;
-    if (WKT_DATATYPES.has(datatype.value) || WKT_TEXT.test(value)) { const point = parseWkt(value); if (point) return point; }
-    if (GML_DATATYPES.has(datatype.value) || GML_TEXT.test(value)) { const point = parseGml(value); if (point) return point; }
-    const name = q.predicate.value.split(/[#/:]/).pop();
-    const number = Number(value);
-    if (value.trim() === '' || !Number.isFinite(number)) continue;
-    if (LATITUDE.test(name)) latitudes.set(q.subject.value, number);
-    else if (LONGITUDE.test(name)) longitudes.set(q.subject.value, number);
-  }
-  for (const [subject, lat] of latitudes) {
-    const lon = longitudes.get(subject);
-    if (lon != null && Math.abs(lat) <= 90 && Math.abs(lon) <= 180) return { lat, lon };
-  }
-  return null;
-}
-
-// -- the triples of a member, as Turtle (TriG for named graphs) ----------------------------------------------------
-const MAX_SHOWN_QUADS = 400;
-const MAX_LITERAL = 300;
-const LOCAL_NAME = /^[A-Za-z0-9_][A-Za-z0-9_\-.]*$/;
-const namespaceOf = (iri) => iri.slice(0, Math.max(iri.lastIndexOf('#'), iri.lastIndexOf('/')) + 1);
-
-/**
- * The prefixes for a member: the known ones, and one for every other namespace that occurs more than once in it,
- * named after the last segment of its path (http://marineregions.org/ns/placetypes# becomes placetypes:).
- */
-function prefixesFor(quads) {
-  const counts = new Map();
-  const count = (term) => { if (term?.termType === 'NamedNode') { const ns = namespaceOf(term.value); counts.set(ns, (counts.get(ns) ?? 0) + 1); } };
-  for (const q of quads) { count(q.subject); count(q.predicate); count(q.object); count(q.graph); if (q.object.termType === 'Literal') count(q.object.datatype); }
-  const prefixes = new Map(Object.entries(PREFIXES));
-  const known = new Set(prefixes.values());
-  for (const [ns, n] of [...counts].sort((a, b) => b[1] - a[1])) {
-    if (n < 2 || known.has(ns) || !/^https?:\/\/[^/]+\/./.test(ns)) continue;
-    const base = (ns.replace(/[#/]+$/, '').split('/').pop() || 'ns').toLowerCase().replace(/[^a-z0-9]/g, '').replace(/^[0-9]+/, '').slice(0, 16) || 'ns';
-    let name = base; let suffix = 2;
-    while (prefixes.has(name)) name = `${base}${suffix++}`;
-    prefixes.set(name, ns); known.add(ns);
-  }
-  return [...prefixes].sort((a, b) => b[1].length - a[1].length);
-}
-
-function termTurtle(term, prefixes, used, notes) {
-  switch (term.termType) {
-    case 'NamedNode': {
-      for (const [prefix, ns] of prefixes) {
-        const local = term.value.slice(ns.length);
-        if (term.value.startsWith(ns) && LOCAL_NAME.test(local) && !local.endsWith('.')) { used.set(prefix, ns); return `${prefix}:${local}`; }
-      }
-      return `<${term.value}>`;
-    }
-    case 'BlankNode': return `_:${term.value}`;
-    case 'Literal': {
-      let value = term.value;
-      if (value.length > MAX_LITERAL) { notes.push(`a literal of ${value.length.toLocaleString('en')} characters is shortened`); value = `${value.slice(0, MAX_LITERAL)}…`; }
-      const text = `"${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r')}"`;
-      if (term.language) return `${text}@${term.language}`;
-      const datatype = term.datatype?.value;
-      return !datatype || datatype === NS.xsd + 'string' ? text : `${text}^^${termTurtle(term.datatype, prefixes, used, notes)}`;
-    }
-    default: return '';
-  }
-}
-
-/** Turtle of the quads, grouped by graph and subject, with the member as the first subject. */
-export function toTurtle(quads, focus) {
-  const used = new Map(); const notes = [];
-  const shown = quads.slice(0, MAX_SHOWN_QUADS);
-  const prefixes = prefixesFor(shown);
-  const turtle = (term) => termTurtle(term, prefixes, used, notes);
-  const graphs = new Map();
-  for (const q of shown) {
-    const graph = q.graph.termType === 'DefaultGraph' ? '' : turtle(q.graph);
-    if (!graphs.has(graph)) graphs.set(graph, new Map());
-    const subjects = graphs.get(graph);
-    const subject = turtle(q.subject);
-    if (!subjects.has(subject)) subjects.set(subject, { first: q.subject.value === focus, predicates: new Map() });
-    const predicates = subjects.get(subject).predicates;
-    const predicate = q.predicate.value === NS.rdf + 'type' ? 'a' : turtle(q.predicate);
-    if (!predicates.has(predicate)) predicates.set(predicate, []);
-    predicates.get(predicate).push(turtle(q.object));
-  }
-  const blocks = [];
-  for (const [graph, subjects] of [...graphs].sort(([a], [b]) => (a === '' ? -1 : b === '' ? 1 : 0))) {
-    const indent = graph ? '    ' : '';
-    const ordered = [...subjects].sort(([, a], [, b]) => Number(b.first) - Number(a.first));
-    const text = ordered.map(([subject, { predicates }]) => `${indent}${subject} ${[...predicates]
-      .map(([predicate, objects]) => {
-        // more than two values, or a long line: one value per line
-        const oneLine = objects.join(' , ');
-        return objects.length > 2 || oneLine.length > 90
-          ? `${predicate}\n${indent}        ${objects.join(` ,\n${indent}        `)}`
-          : `${predicate} ${oneLine}`;
-      })
-      .join(` ;\n${indent}    `)} .`).join('\n\n');
-    blocks.push(graph ? `${graph} {\n${text}\n}` : text);
-  }
-  const header = [...used].sort(([a], [b]) => a.localeCompare(b)).map(([prefix, ns]) => `@prefix ${prefix}: <${ns}> .`).join('\n');
-  const tail = [
-    quads.length > shown.length ? `# … and ${(quads.length - shown.length).toLocaleString('en')} more triples` : '',
-    notes.length ? `# ${notes.length === 1 ? notes[0] : `${notes.length} long literals are shortened`} here` : '',
-  ].filter(Boolean).join('\n');
-  return [header, blocks.join('\n\n'), tail].filter(Boolean).join('\n\n');
-}
-
-// -- reading an entity out of a member ----------------------------------------------------------------------------
-const timestampText = (value) => (value == null ? '' : value instanceof Date ? value.toISOString() : String(value));
-
-function toEntity(member) {
-  const memberId = member.id.value;
-  let itemId = member.isVersionOf || memberId;
-  let deleted = false;
-  for (const q of member.quads) {
-    if (q.subject.value !== memberId || q.object.termType !== 'NamedNode') continue;
-    if (q.predicate.value === NS.as + 'object') itemId = q.object.value.replace(/\?_profile=.*$/, '');
-    // A version without ldes:versionOfPath: the usual dct:isVersionOf still says which entity it is a version of
-    if (q.predicate.value === NS.dct + 'isVersionOf' && !member.isVersionOf) itemId = q.object.value;
-    if (q.predicate.value === NS.rdf + 'type' && q.object.value === NS.as + 'Delete') deleted = true;
-  }
-  // Only the name of the entity itself: a member also describes related things (a collection, a concept), with names of their own
-  const subjects = new Set([memberId, itemId, member.isVersionOf].filter(Boolean));
-  let label = ''; let labelRank = -1;
-  for (const q of member.quads) {
-    if (q.object.termType !== 'Literal' || !subjects.has(q.subject.value)) continue;
-    const index = LABEL_PREDICATES.indexOf(q.predicate.value);
-    if (index < 0) continue;
-    // the language of the reader first, then the order of LABEL_PREDICATES
-    const rank = languageRank(q.object.language) * 100 + (LABEL_PREDICATES.length - index);
-    if (rank > labelRank) { label = q.object.value; labelRank = rank; }
-  }
-  return {
-    key: itemId,
-    deleted,
-    entity: {
-      id: itemId, member: memberId, label: label || prettyIri(itemId), hasLabel: Boolean(label), ...geometryOf(member.quads),
-      ts: timestampText(member.timestamp), size: member.quads.length, turtle: toTurtle(member.quads, memberId),
-    },
-  };
-}
-
-const normalize = (text) => text.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
-
-// -- what the client found out about the LDES ---------------------------------------------------------------------
-function duration(ms) {
-  const units = [['day', 864e5], ['hour', 36e5], ['minute', 6e4], ['second', 1e3]];
-  for (const [unit, size] of units) {
-    if (ms >= size && ms % size === 0) return `${ms / size} ${unit}${ms / size === 1 ? '' : 's'}`;
-  }
-  return `${ms} ms`;
-}
-
-function describeLdes(info, entryPoint) {
-  const quads = info?.contextQuads ?? [];
-  const objects = (subject, predicate) => quads.filter((q) => q.subject.equals(subject) && q.predicate.value === predicate).map((q) => q.object);
-  const literal = (subject, predicates) => {
-    let best = null; let bestRank = -1;
-    for (const [i, predicate] of predicates.entries()) {
-      for (const object of objects(subject, predicate)) {
-        if (object.termType !== 'Literal') continue;
-        const rank = languageRank(object.language) * 100 + (predicates.length - i);
-        if (rank > bestRank) { best = object.value; bestRank = rank; }
-      }
-    }
-    return best;
-  };
-  const stream = quads.find((q) => q.predicate.value === NS.rdf + 'type' && q.object.value === NS.ldes + 'EventStream')?.subject
-    ?? (info?.rootNode && quads.find((q) => q.object.equals(info.rootNode) && q.predicate.value === NS.tree + 'view')?.subject);
-  const about = [stream, info?.rootNode].filter(Boolean);
-  const first = (fn) => { for (const subject of about) { const value = fn(subject); if (value) return value; } return null; };
-  const named = (term) => (term.termType === 'Literal' ? term.value : literal(term, LABEL_PREDICATES) ?? compact(term.value));
-  const term = (t, inline = 'described in the LDES') => t && (t.termType === 'NamedNode' ? { iri: t.value, text: compact(t.value) } : { text: t.termType === 'Literal' ? t.value : inline });
-  // A retention policy by its type and its parameters, e.g. "ldes:LatestVersionSubset (ldes:amount 1)"
-  const policy = (t) => {
-    const types = objects(t, NS.rdf + 'type').map((o) => compact(o.value));
-    const parameters = quads.filter((q) => q.subject.equals(t) && q.predicate.value !== NS.rdf + 'type' && q.object.termType === 'Literal')
-      .map((q) => `${compact(q.predicate.value)} ${q.object.value}`);
-    const text = `${types.join(', ') || (t.termType === 'NamedNode' ? compact(t.value) : 'a policy')}${parameters.length ? ` (${parameters.join(', ')})` : ''}`;
-    return t.termType === 'NamedNode' ? { iri: t.value, text } : { text };
-  };
-  const paths = info?.shapeQuads?.filter((q) => q.predicate.value === PREFIXES.sh + 'path').length ?? 0;
-
-  const title = first((s) => literal(s, [NS.dct + 'title', 'https://schema.org/name', 'http://schema.org/name', NS.rdfs + 'label', PREFIXES.dc + 'title', NS.skos + 'prefLabel']));
-  const description = first((s) => literal(s, [NS.dct + 'description', NS.rdfs + 'comment', 'https://schema.org/description', PREFIXES.dc + 'description']));
-  const publisher = first((s) => objects(s, NS.dct + 'publisher')[0] ?? objects(s, PREFIXES.dc + 'publisher')[0]);
-  const license = first((s) => objects(s, NS.dct + 'license')[0] ?? objects(s, NS.dct + 'rights')[0]);
-  const ldes2Membership = stream ? ['memberType', 'memberPath', 'memberGraph', 'member'].flatMap((name) => objects(stream, NS.ldes + name).map((o) => `ldes:${name} ${o.termType === 'NamedNode' ? compact(o.value) : o.termType === 'Literal' ? o.value : '(a SHACL path)'}`)) : [];
-
-  const rows = [
-    ['Specification', [{ text: info?.ldesVersion === 2 ? 'LDES 2.0 (experimental support)' : 'LDES 1.0' }]],
-    ['Event stream', stream ? [term(stream)] : []],
-    ['Entry point', [{ iri: entryPoint, text: entryPoint }]],
-    ['View', info?.rootNode && info.rootNode.value !== entryPoint && !info.rootNode.equals(stream) ? [term(info.rootNode)] : []],
-    ['Publisher', publisher ? [publisher.termType === 'NamedNode' ? { iri: publisher.value, text: named(publisher) } : { text: named(publisher) }] : []],
-    ['License', license ? [term(license)] : []],
-    ['Ordered by', info?.timestampPath ? [term(info.timestampPath)] : info?.sequencePath ? [term(info.sequencePath)] : [{ text: info?.ldesVersion === 2 ? 'the order of the pages and their members' : 'no ldes:timestampPath: in any order' }]],
-    ['Versions of', info?.versionOfPath ? [term(info.versionOfPath)] : []],
-    ['Members', ldes2Membership.map((text) => ({ text }))],
-    ['Member shape', info?.shape ? [{ ...term(info.shape, 'a SHACL shape in the LDES'), suffix: paths ? ` (${paths} property ${paths === 1 ? 'path' : 'paths'})` : '' }] : [{ text: 'none declared: members are extracted with a Concise Bounded Description' }]],
-    ['Retention', info?.retentionPolicies?.length ? info.retentionPolicies.map(policy) : [{ text: 'none declared: the full history is kept' }]],
-    // ldes:pollingInterval is in seconds
-    ['Polling interval', info?.pollingInterval ? [{ text: duration(info.pollingInterval * 1000) }] : []],
-  ].filter(([, values]) => values.length);
-
-  const statements = stream ? quads.filter((q) => q.subject.equals(stream)).map((q) => [compact(q.predicate.value), q.object.termType === 'NamedNode' ? compact(q.object.value) : q.object.termType === 'Literal' ? q.object.value : '[ … ]']) : [];
-  return { title, description, rows, statements };
-}
-
 // -- the chapter ----------------------------------------------------------------------------------------------------
-export function createSyncChapter(root, { onChange }) {
+export function createSyncChapter(root, { onChange, onVersion }) {
   const field = (label, control, hint, attrs = {}) => h('label', { class: 'pg-field', ...attrs }, h('span', {}, label), control, hint && h('small', {}, hint));
   const presetSelect = h('select', { id: 'sync-preset', class: 'pg-wide', 'aria-label': 'Example LDES to replicate' });
   const urlInput = h('input', { type: 'url', id: 'sync-url', placeholder: 'https://example.org/ldes', required: true });
@@ -424,7 +111,9 @@ export function createSyncChapter(root, { onChange }) {
   const stopButton = h('button', { class: 'pg-btn', type: 'button', disabled: true }, 'Stop');
   const clearButton = h('button', { class: 'pg-btn', type: 'button' }, 'Forget saved view');
   const advancedSummary = h('summary', {});
-  const status = h('p', { class: 'pg-status', role: 'status' }, 'Ready.');
+  const statusText = h('span', { class: 'pg-status-text' }, 'Ready.');
+  const requestCount = h('span', { class: 'pg-requests' });
+  const status = h('p', { class: 'pg-status', role: 'status' }, h('span', { class: 'pg-spinner', 'aria-hidden': 'true' }), statusText, requestCount);
   const note = h('p', { class: 'pg-note' });
   const stats = Object.fromEntries(['members', 'pages', 'entities', 'placed', 'fresh', 'changed', 'removed'].map((k) => [k, h('strong', {}, '0')]));
   const about = h('section', { class: 'pg-about', hidden: true, 'aria-label': 'About this LDES' });
@@ -503,13 +192,10 @@ export function createSyncChapter(root, { onChange }) {
   let view = new Map();
   let counters = { members: 0, pages: 0, fresh: 0, changed: 0, removed: 0 };
   let run = 0;
-  let activeClient = null;
-  let limit = DEFAULT_LIMIT;
-  let resumeReading = null; // set while the sync waits at its limit: call it with true to read on, with false to stop
   let map = null; let layer = null; let leafletReady = null;
   let fittedFor = null;
   let selectedId = null; let shownEntity = null;
-  const markers = new Map();
+  const markers = new Map(); // entity id -> { marker, entity }
 
   const ensureMap = async () => {
     leafletReady ??= (async () => {
@@ -524,7 +210,8 @@ export function createSyncChapter(root, { onChange }) {
     await leafletReady;
   };
 
-  const render = debounce(async () => {
+  // Throttled, not debounced: while members stream in without a pause, the view still follows them
+  const render = throttle(async () => {
     const all = [...view.values()];
     const placedAll = all.filter((e) => e.lat != null);
     for (const [key, node] of Object.entries(stats)) {
@@ -532,7 +219,8 @@ export function createSyncChapter(root, { onChange }) {
     }
     const rawQuery = searchInput.value.trim();
     const query = normalize(rawQuery);
-    const matching = query ? all.filter((e) => normalize(e.label).includes(query) || normalize(e.id).includes(query)) : all;
+    // entity.search is normalised in the worker; views saved by an earlier version of this page do not have it
+    const matching = query ? all.filter((e) => (e.search ?? normalize(`${e.label} ${e.id}`)).includes(query)) : all;
     resultCount.textContent = `${matching.length.toLocaleString('en')} of ${all.length.toLocaleString('en')} entities${query ? ` contain “${rawQuery}”` : ''}. Searched in your browser: no request left it.`;
     results.textContent = '';
     for (const entity of matching.slice(0, 80)) {
@@ -557,12 +245,21 @@ export function createSyncChapter(root, { onChange }) {
     if (!placedAll.length) return;
     await ensureMap();
     if (!map) return;
-    layer.clearLayers(); markers.clear();
-    for (const entity of placed.slice(0, MAX_MARKERS)) {
+    // Only the markers that changed: removing and drawing thousands of them on every update would block the page
+    const wanted = new Map(placed.slice(0, MAX_MARKERS).map((e) => [e.id, e]));
+    for (const [id, { marker }] of markers) if (!wanted.has(id)) { marker.remove(); markers.delete(id); }
+    for (const [id, entity] of wanted) {
+      const shown = markers.get(id);
+      if (shown?.entity === entity) continue;
+      if (shown) {
+        shown.marker.setLatLng([entity.lat, entity.lon]).setPopupContent(`<strong>${escapeHtml(entity.label)}</strong>`);
+        shown.entity = entity;
+        continue;
+      }
       const marker = window.L.circleMarker([entity.lat, entity.lon], { radius: 5, color: '#5252cf', weight: 1, fillColor: '#7950e6', fillOpacity: 0.7 })
         .bindPopup(`<strong>${escapeHtml(entity.label)}</strong>`)
-        .on('click', () => select(entity));
-      marker.addTo(layer); markers.set(entity.id, marker);
+        .on('click', () => { const current = view.get(id); if (current) select(current); });
+      marker.addTo(layer); markers.set(id, { marker, entity });
     }
     map.invalidateSize();
     // Fit the map once per search, and once when the first places arrive: not on every member, so that it can be panned
@@ -570,10 +267,10 @@ export function createSyncChapter(root, { onChange }) {
       const bounds = window.L.latLngBounds(placed.slice(0, MAX_MARKERS).map((e) => [e.lat, e.lon]));
       if (bounds.isValid()) { map.fitBounds(bounds.pad(0.2), { maxZoom: 9 }); fittedFor = query; }
     }
-  }, 200);
+  }, 250);
 
   function focusOn(entity) {
-    const marker = markers.get(entity.id);
+    const marker = markers.get(entity.id)?.marker;
     if (marker && map) { map.flyTo(marker.getLatLng(), Math.max(map.getZoom(), 8)); marker.openPopup(); }
   }
 
@@ -622,8 +319,7 @@ export function createSyncChapter(root, { onChange }) {
     while (log.children.length > 80) log.lastChild.remove();
   };
 
-  function showAbout(info, entryPoint) {
-    const { title, description, rows, statements } = describeLdes(info, entryPoint);
+  function showAbout({ title, description, rows, statements }) {
     const value = (item) => [item.iri ? h('a', { href: item.iri, target: '_blank', rel: 'noopener', title: item.iri }, item.text) : item.text, item.suffix ?? ''];
     about.textContent = '';
     about.append(...[
@@ -634,6 +330,32 @@ export function createSyncChapter(root, { onChange }) {
         h('ul', { class: 'pg-statements' }, statements.map(([p, o]) => h('li', {}, h('code', {}, p), ' ', o)))),
     ].filter(Boolean));
     about.hidden = false;
+  }
+
+  // the replication worker ---------------------------------------------------------------------------------------------
+  // ldes-client runs in a Web Worker (replicator.js): parsing a large page can take seconds, which would freeze this page.
+  const worker = new Worker(new URL('./replicator.js', import.meta.url), { type: 'module' });
+  const acks = new Map(); let seq = 0;
+  let sync = null; // the sync that runs: { id, cfg, name, after, started, restored, retried, paused, idle }
+  let requests = 0;
+  worker.addEventListener('message', ({ data }) => {
+    if (data.type === 'ready') { onVersion?.(data.version); return; }
+    if (data.type === 'stopped') { acks.get(data.seq)?.(); acks.delete(data.seq); return; }
+    if (data.type === 'requests') { requests = data.inFlight; showBusy(); return; }
+    if (!sync || data.id !== sync.id) return; // a message of a sync that was stopped
+    handle(sync, data);
+  });
+  worker.addEventListener('error', (event) => {
+    event.preventDefault?.();
+    if (sync) fail(new Error(`the replication worker failed: ${event.message ?? 'it could not be loaded'}`));
+  });
+  const stopWorker = () => new Promise((resolve) => { const n = ++seq; acks.set(n, resolve); worker.postMessage({ type: 'stop', seq: n }); });
+
+  // busy: a spinner while requests are on their way, or while the client is working and not waiting at its limit
+  function showBusy() {
+    const working = Boolean(sync && !sync.paused && !sync.idle);
+    status.classList.toggle('busy', working || requests > 0);
+    requestCount.textContent = requests > 0 ? `${requests} ${requests === 1 ? 'request' : 'requests'} in progress` : working ? 'working' : '';
   }
 
   // sync -------------------------------------------------------------------------------------------------------------
@@ -653,8 +375,6 @@ export function createSyncChapter(root, { onChange }) {
     const mine = ++run;
     const cfg = read();
     const name = stateName(cfg.url);
-    const started = performance.now();
-    limit = cfg.limit;
     startButton.disabled = true; stopButton.disabled = false; moreButton.disabled = true;
     counters = { members: 0, pages: 0, fresh: 0, changed: 0, removed: 0 };
     view = new Map(); log.textContent = ''; about.hidden = true; fittedFor = null;
@@ -675,95 +395,105 @@ export function createSyncChapter(root, { onChange }) {
       // Saved before the client starts, so that a sync that is stopped early resumes with the same filter too.
       if (!restored) await dbSet(name, { days: cfg.days, after: after?.toISOString() ?? null, entries: [] });
     }
+    if (mine !== run) return;
     if (restored) addLog(`Restored ${restored} entities from the previous visit; the client continues from its bookmark.`);
     if (after) addLog(`Reading members changed after ${after.toISOString()}${restored ? ' (fixed at the first sync)' : ''}.`);
     render();
     setStatus(restored ? `Restored ${restored.toLocaleString('en')} entities. Asking the LDES what changed…` : 'Connecting to the LDES…');
 
-    let client;
-    try {
-      client = L.replicateLDES({
-        url: cfg.url, fetch: browserFetch(), polling: cfg.follow, pollInterval: 3000, after,
-        statePath: cfg.resume ? name : undefined,
-      });
-    } catch (error) { return fail(error); }
-    activeClient = client;
-    client.on('fragment', () => { counters.pages++; render(); });
-    client.on('description', (info) => {
-      if (mine !== run) return;
-      addLog(`LDES ${info?.ldesVersion === 2 ? '2.0' : '1.0'} description received${info?.timestampPath ? `, ordered by ${compact(info.timestampPath.value)}` : ''}.`);
-      showAbout(info, cfg.url);
+    sync = { id: mine, cfg, name, after, started: performance.now(), restored, retried, paused: false, idle: false };
+    sync.save = () => dbSet(name, { days: cfg.days, after: after?.toISOString() ?? null, entries: [...view.entries()] });
+    sync.persist = debounce(() => { if (cfg.resume && sync?.id === mine) sync.save(); }, 1000);
+    showBusy();
+    worker.postMessage({
+      type: 'start', id: mine, url: cfg.url, after: after?.toISOString(), follow: cfg.follow,
+      statePath: cfg.resume ? name : undefined, limit: cfg.limit,
     });
-    client.on('error', (error) => { addLog(`Error: ${error?.message ?? error}`); });
+  }
 
-    const save = () => dbSet(name, { days: cfg.days, after: after?.toISOString() ?? null, entries: [...view.entries()] });
-    const persist = debounce(() => { if (cfg.resume && mine === run) save(); }, 500);
-    try {
-      for await (const member of client.stream({ highWaterMark: 10 })) {
-        if (mine !== run) break;
-        counters.members++;
-        const { key, deleted, entity } = toEntity(member);
-        if (deleted) { if (view.delete(key)) counters.removed++; }
-        else { if (view.has(key)) counters.changed++; else counters.fresh++; view.set(key, entity); }
-        if (counters.members <= 5 || counters.members % 100 === 0) addLog(`${deleted ? 'deleted' : 'received'} ${entity.label}`);
-        setStatus(`${counters.members.toLocaleString('en')} members read in ${formatDuration(performance.now() - started)}…`);
-        render(); persist();
-        if (counters.members >= limit) {
-          if (cfg.resume) save();
-          addLog(`Paused after ${counters.members.toLocaleString('en')} members.`);
-          setStatus(`Paused after ${counters.members.toLocaleString('en')} members (${formatDuration(performance.now() - started)}): ${view.size.toLocaleString('en')} entities in the view. Press “Fetch more members” to read the next ${cfg.limit.toLocaleString('en')}.`);
-          moreButton.disabled = false;
-          const more = await new Promise((resolve) => { resumeReading = resolve; });
-          resumeReading = null; moreButton.disabled = true;
-          if (!more || mine !== run) break;
-          limit += cfg.limit;
-          limitInput.value = limit; describeAdvanced(); onChange();
-          addLog(`Fetching up to ${limit.toLocaleString('en')} members.`);
+  const elapsed = (s) => formatDuration(performance.now() - s.started);
+
+  async function handle(s, message) {
+    switch (message.type) {
+      case 'description':
+        addLog(`LDES ${message.version === 2 ? '2.0' : '1.0'} description received${message.orderedBy ? `, ordered by ${message.orderedBy}` : ''}.`);
+        showAbout(message.about);
+        break;
+      case 'fragment':
+        counters.pages++; s.idle = false; showBusy(); render();
+        if (counters.members === 0 && !s.restored) setStatus(`${counters.pages.toLocaleString('en')} ${counters.pages === 1 ? 'page' : 'pages'} fetched, looking for the first members…`);
+        break;
+      case 'members':
+        s.idle = false;
+        for (const { key, deleted, entity } of message.batch) {
+          counters.members++;
+          if (deleted) { if (view.delete(key)) counters.removed++; }
+          else { if (view.has(key)) counters.changed++; else counters.fresh++; view.set(key, entity); }
+          if (counters.members <= 5 || counters.members % 100 === 0) addLog(`${deleted ? 'deleted' : 'received'} ${entity.label}`);
         }
+        setStatus(`${counters.members.toLocaleString('en')} members read in ${elapsed(s)}…`);
+        showBusy(); render(); s.persist();
+        break;
+      case 'paused':
+        s.paused = true; showBusy();
+        if (s.cfg.resume) s.save();
+        addLog(`Paused after ${counters.members.toLocaleString('en')} members.`);
+        setStatus(`Paused after ${counters.members.toLocaleString('en')} members (${elapsed(s)}): ${view.size.toLocaleString('en')} entities in the view. Press “Fetch more members” to read the next ${s.cfg.limit.toLocaleString('en')}.`);
+        moreButton.disabled = false;
+        break;
+      case 'resumed':
+        s.paused = false; showBusy();
+        limitInput.value = message.limit; describeAdvanced(); onChange();
+        addLog(`Fetching up to ${message.limit.toLocaleString('en')} members.`);
+        break;
+      case 'idle':
+        s.idle = true; showBusy();
+        if (s.cfg.resume) s.save();
+        setStatus(`Following: ${counters.members.toLocaleString('en')} members read, ${view.size.toLocaleString('en')} entities in the view. New members appear as the LDES publishes them.`);
+        break;
+      case 'log':
+        addLog(message.text);
+        break;
+      case 'error':
+        sync = null; showBusy();
+        // A bookmark saved under another filter (for example by an older version of this page): start over, once.
+        if (s.cfg.resume && !s.retried && /Different conditions/.test(message.message)) {
+          await forgetState(s.name);
+          start({ retried: true });
+          return;
+        }
+        fail(new Error(message.message));
+        break;
+      case 'done': {
+        sync = null; showBusy();
+        if (s.cfg.resume) await s.save();
+        startButton.disabled = false; stopButton.disabled = true; moreButton.disabled = true;
+        const fresh = counters.fresh + counters.changed;
+        setStatus(`Caught up in ${elapsed(s)}: ${counters.members.toLocaleString('en')} members read from ${counters.pages.toLocaleString('en')} pages, ${view.size.toLocaleString('en')} entities in the view.${s.restored ? ` ${fresh.toLocaleString('en')} of them were changes since the last visit.` : ''}`);
+        render();
+        break;
       }
-    } catch (error) {
-      if (mine !== run) return;
-      await closeClient(client);
-      // A bookmark saved under another filter (for example by an older version of this page): start over, once.
-      if (cfg.resume && !retried && /Different conditions/.test(error?.message ?? '')) {
-        await forgetState(name);
-        return start({ retried: true });
-      }
-      return fail(error);
     }
-    if (mine !== run) return;
-    // close() saves the bookmark: wait for it, so that the next sync finds it.
-    await closeClient(client);
-    if (activeClient === client) activeClient = null;
-    if (mine !== run) return;
-    if (cfg.resume) await save();
-    startButton.disabled = false; stopButton.disabled = true; moreButton.disabled = true;
-    const fresh = counters.fresh + counters.changed;
-    setStatus(`Caught up in ${formatDuration(performance.now() - started)}: ${counters.members.toLocaleString('en')} members read from ${counters.pages.toLocaleString('en')} pages, ${view.size.toLocaleString('en')} entities in the view.${restored ? ` ${fresh.toLocaleString('en')} of them were changes since the last visit.` : ''}`);
-    render();
   }
 
   function fail(error) {
+    sync = null; showBusy();
     addLog(`Error: ${error?.message ?? error}`);
     setStatus(`Could not read this LDES: ${error?.message ?? error}. It must be reachable from a browser (CORS) and expose a view.`, true);
     startButton.disabled = false; stopButton.disabled = true; moreButton.disabled = true;
-    activeClient = null;
   }
 
-  async function closeClient(client) {
-    try { await client?.close(); } catch (error) { addLog(`Closing the client: ${error?.message ?? error}`); }
-  }
-
+  /** Stops the sync, and resolves when the worker has closed its client (and saved its bookmark) */
   async function stop() {
     run++;
-    resumeReading?.(false);
-    const client = activeClient;
-    activeClient = null;
+    const s = sync;
+    sync = null; showBusy();
     startButton.disabled = false; stopButton.disabled = true; moreButton.disabled = true;
-    await closeClient(client);
+    if (s?.cfg.resume) s.save();
+    await stopWorker();
   }
 
-  const setStatus = (text, isError = false) => { status.textContent = text; status.classList.toggle('error', isError); };
+  const setStatus = (text, isError = false) => { statusText.textContent = text; status.classList.toggle('error', isError); };
 
   const forgetState = (name) => Promise.all([dbDelete(name), deleteIndexedDb(name)]);
 
@@ -794,7 +524,7 @@ export function createSyncChapter(root, { onChange }) {
   }
   searchInput.addEventListener('input', () => { render(); onChange(); });
   startButton.addEventListener('click', () => { start(); onChange(); });
-  moreButton.addEventListener('click', () => resumeReading?.(true));
+  moreButton.addEventListener('click', () => { if (sync?.paused) { moreButton.disabled = true; worker.postMessage({ type: 'more', id: sync.id }); } });
   stopButton.addEventListener('click', async () => { await stop(); setStatus('Stopped. The view keeps what it has; Sync continues from where it stopped.'); });
   clearButton.addEventListener('click', forget);
   urlInput.addEventListener('keydown', (event) => { if (event.key === 'Enter') { event.preventDefault(); start(); } });
