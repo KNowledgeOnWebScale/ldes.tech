@@ -13,8 +13,8 @@ const coghent = (path, label, note) => ({ group: 'Cultural heritage', label: `Co
 export const SYNC_PRESETS = {
   'marine-regions': {
     group: 'Places on a map', label: 'Marine Regions gazetteer',
-    url: 'https://www.marineregions.org/feed.ttl', days: 30, query: 'canyon',
-    note: 'VLIZ publishes its gazetteer of marine places as an LDES with hourly pages. Every member is a new version of a place with a WKT centroid. The example reads the changes of the last 30 days.',
+    url: 'https://www.marineregions.org/feed.ttl', query: 'canyon',
+    note: 'VLIZ publishes its gazetteer of marine places as an LDES with hourly pages. Every member is a new version of a place with a WKT centroid.',
   },
   'aphia': {
     group: 'Species and vocabularies', label: 'WoRMS / Aphia: marine species',
@@ -103,7 +103,6 @@ export function createSyncChapter(root, { onChange, onVersion }) {
   const urlInput = h('input', { type: 'url', id: 'sync-url', placeholder: 'https://example.org/ldes', required: true });
   const urlField = field('LDES entry point', urlInput, 'The URL of the event stream, a view or a page.', { class: 'pg-field pg-wide' });
   const limitInput = h('input', { type: 'number', id: 'sync-limit', min: 1, max: 1000000, value: DEFAULT_LIMIT });
-  const daysInput = h('input', { type: 'number', id: 'sync-days', min: 0, placeholder: 'everything' });
   const followInput = h('input', { type: 'checkbox', id: 'sync-follow' });
   const resumeInput = h('input', { type: 'checkbox', id: 'sync-resume', checked: true });
   const startButton = h('button', { class: 'pg-btn primary', type: 'button' }, 'Sync');
@@ -134,7 +133,6 @@ export function createSyncChapter(root, { onChange, onVersion }) {
       h('details', { class: 'pg-advanced' }, advancedSummary,
         h('div', { class: 'pg-advanced-grid' },
           field('Stop after (members)', limitInput, '“Fetch more members” continues with as many again.'),
-          field('Look back (days)', daysInput, 'Only members of the last N days before your first sync (LDES time filter). Empty: everything.'),
           h('div', { class: 'pg-checks' },
             h('label', {}, followInput, ' Keep following: poll for new members once caught up'),
             h('label', {}, resumeInput, ' Remember the view and where I stopped (in this browser)'),
@@ -167,7 +165,6 @@ export function createSyncChapter(root, { onChange, onVersion }) {
 
   function describeAdvanced() {
     const parts = [`stop after ${Number(limitInput.value || DEFAULT_LIMIT).toLocaleString('en')} members`];
-    if (Number(daysInput.value)) parts.push(`last ${daysInput.value} days`);
     if (followInput.checked) parts.push('keep following');
     parts.push(resumeInput.checked ? 'remember where I stopped' : 'start from scratch every time');
     advancedSummary.textContent = `Advanced: ${parts.join(', ')}`;
@@ -179,7 +176,6 @@ export function createSyncChapter(root, { onChange, onVersion }) {
     const preset = SYNC_PRESETS[id] ?? SYNC_PRESETS.custom;
     presetSelect.value = SYNC_PRESETS[id] ? id : 'custom';
     if (preset.url || presetSelect.value !== 'custom') urlInput.value = preset.url;
-    daysInput.value = preset.days ?? '';
     limitInput.value = preset.limit ?? DEFAULT_LIMIT;
     followInput.checked = Boolean(preset.follow);
     resumeInput.checked = preset.resume ?? true;
@@ -336,7 +332,7 @@ export function createSyncChapter(root, { onChange, onVersion }) {
   // ldes-client runs in a Web Worker (replicator.js): parsing a large page can take seconds, which would freeze this page.
   const worker = new Worker(new URL('./replicator.js', import.meta.url), { type: 'module' });
   const acks = new Map(); let seq = 0;
-  let sync = null; // the sync that runs: { id, cfg, name, after, started, restored, retried, paused, idle }
+  let sync = null; // the sync that runs: { id, cfg, name, started, restored, retried, paused, idle }
   let requests = 0;
   worker.addEventListener('message', ({ data }) => {
     if (data.type === 'ready') { onVersion?.(data.version); return; }
@@ -359,11 +355,6 @@ export function createSyncChapter(root, { onChange, onVersion }) {
   }
 
   // sync -------------------------------------------------------------------------------------------------------------
-  // The client saves its bookmark together with the time filter it ran with, and refuses to resume under another
-  // filter ("The running conditions have changed"): the bookmark is only valid for that filter. "Look back N days"
-  // is therefore fixed at the first sync and stored with the saved view, so that every later sync uses the same
-  // `after`. When the number of days changes, the saved view and bookmark are discarded and the sync starts over.
-  //
   // At its limit, the sync waits with the client open, instead of closing it: "Fetch more members" reads on from the
   // same stream. Nothing is fetched twice, and no member is skipped.
   async function start({ retried = false } = {}) {
@@ -381,32 +372,28 @@ export function createSyncChapter(root, { onChange, onVersion }) {
     closeMember();
 
     let restored = 0;
-    let after = cfg.days ? new Date(Date.now() - cfg.days * 864e5) : undefined;
     if (cfg.resume) {
       const saved = await dbGet(name);
-      if (saved?.entries && saved.days === cfg.days) {
+      // Views saved by an earlier version of this page could be limited to the last N days: their bookmark only
+      // resumes under that time filter, so they are discarded.
+      if (saved?.entries && !saved.days) {
         view = new Map(saved.entries); restored = view.size;
-        after = saved.after ? new Date(saved.after) : undefined;
       } else if (saved) {
-        addLog(saved.entries ? `“Look back” changed from ${saved.days || 'everything'} to ${cfg.days || 'everything'}: starting over.` : 'The saved view has an older format: starting over.');
+        addLog('The saved view has an older format: starting over.');
         await forgetState(name);
       }
-      if (mine !== run) return;
-      // Saved before the client starts, so that a sync that is stopped early resumes with the same filter too.
-      if (!restored) await dbSet(name, { days: cfg.days, after: after?.toISOString() ?? null, entries: [] });
     }
     if (mine !== run) return;
     if (restored) addLog(`Restored ${restored} entities from the previous visit; the client continues from its bookmark.`);
-    if (after) addLog(`Reading members changed after ${after.toISOString()}${restored ? ' (fixed at the first sync)' : ''}.`);
     render();
     setStatus(restored ? `Restored ${restored.toLocaleString('en')} entities. Asking the LDES what changed…` : 'Connecting to the LDES…');
 
-    sync = { id: mine, cfg, name, after, started: performance.now(), restored, retried, paused: false, idle: false };
-    sync.save = () => dbSet(name, { days: cfg.days, after: after?.toISOString() ?? null, entries: [...view.entries()] });
+    sync = { id: mine, cfg, name, started: performance.now(), restored, retried, paused: false, idle: false };
+    sync.save = () => dbSet(name, { entries: [...view.entries()] });
     sync.persist = debounce(() => { if (cfg.resume && sync?.id === mine) sync.save(); }, 1000);
     showBusy();
     worker.postMessage({
-      type: 'start', id: mine, url: cfg.url, after: after?.toISOString(), follow: cfg.follow,
+      type: 'start', id: mine, url: cfg.url, follow: cfg.follow,
       statePath: cfg.resume ? name : undefined, limit: cfg.limit,
     });
   }
@@ -508,7 +495,7 @@ export function createSyncChapter(root, { onChange, onVersion }) {
 
   function read() {
     return {
-      url: urlInput.value.trim(), days: Number(daysInput.value) || 0, limit: Number(limitInput.value) || DEFAULT_LIMIT,
+      url: urlInput.value.trim(), limit: Number(limitInput.value) || DEFAULT_LIMIT,
       follow: followInput.checked, resume: resumeInput.checked,
     };
   }
@@ -519,7 +506,7 @@ export function createSyncChapter(root, { onChange, onVersion }) {
     if (presetSelect.value === 'custom') { urlInput.value = ''; urlInput.focus(); }
     onChange();
   });
-  for (const control of [urlInput, daysInput, limitInput, followInput, resumeInput]) {
+  for (const control of [urlInput, limitInput, followInput, resumeInput]) {
     control.addEventListener('input', () => { describeAdvanced(); onChange(); });
   }
   searchInput.addEventListener('input', () => { render(); onChange(); });
@@ -539,7 +526,6 @@ export function createSyncChapter(root, { onChange, onVersion }) {
     apply(state, { autostart = false } = {}) {
       applyPreset(state.preset ?? 'custom');
       if (state.url != null) urlInput.value = state.url;
-      if (state.days != null) daysInput.value = state.days || '';
       if (state.limit != null) limitInput.value = state.limit;
       if (state.follow != null) followInput.checked = state.follow;
       if (state.resume != null) resumeInput.checked = state.resume;

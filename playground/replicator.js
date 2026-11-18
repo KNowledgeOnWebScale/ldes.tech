@@ -34,7 +34,7 @@ async function countingFetch(input, init = {}) {
   }
 }
 
-function start({ id, url, after, follow, statePath, limit }) {
+function start({ id, url, follow, statePath, limit }) {
   const run = { id, limit, step: limit, members: 0, wake: null, client: null };
   current = run;
   const send = (message) => post({ ...message, id });
@@ -46,7 +46,7 @@ function start({ id, url, after, follow, statePath, limit }) {
   };
 
   try {
-    run.client = L.replicateLDES({ url, fetch: countingFetch, polling: follow, pollInterval: 3000, after: after ? new Date(after) : undefined, statePath });
+    run.client = L.replicateLDES({ url, fetch: countingFetch, polling: follow, pollInterval: 3000, statePath });
   } catch (error) {
     send({ type: 'error', message: error?.message ?? String(error) });
     current = null;
